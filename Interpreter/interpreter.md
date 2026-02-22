@@ -3,7 +3,7 @@
 ![Difficulty](https://img.shields.io/badge/Difficulty-Medium-yellow)
 ![Platform](https://img.shields.io/badge/Platform-Linux-blue)
 ![Status](https://img.shields.io/badge/Status-Rooted-success)
-![Author](https://img.shields.io/badge/Author-Salwa-Ai-orange)
+
 
 ---
 
