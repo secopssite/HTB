@@ -3,7 +3,7 @@
 ![Difficulty](https://img.shields.io/badge/Difficulty-Medium-yellow)
 ![Platform](https://img.shields.io/badge/Platform-Linux-blue)
 ![Status](https://img.shields.io/badge/Status-Rooted-success)
-![Author](https://img.shields.io/badge/Author-Chad-orange)
+![Author](https://img.shields.io/badge/Author-Salwa-Ai-orange)
 
 ---
 
@@ -14,7 +14,7 @@
 | IP Address | 10.129.3.174 |
 | Hostname | interpreter.htb |
 | OS | Linux |
-| Author | Chad |
+| Author | Salwa-Ai |
 
 ---
 
