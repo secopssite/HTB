@@ -3,7 +3,7 @@
 ![Difficulty](https://img.shields.io/badge/Difficulty-Hard-red)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%2B%20Linux-blue)
 ![Status](https://img.shields.io/badge/Status-Rooted-success)
-![Author](https://img.shields.io/badge/Author-Chad-orange)
+
 
 ---
 
