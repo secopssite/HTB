@@ -1,2 +1,0 @@
-# HTB
-HTB CTFs 
