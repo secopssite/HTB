@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/mrs-nobody.png" width="260" alt="Mrs. Nobody" />
+  <img src="assets/MrsNobody.png" width="260" alt="Mrs. Nobody" />
 </p>
 
 <p align="center">
