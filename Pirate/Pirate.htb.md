@@ -313,7 +313,3 @@ python3 /usr/share/doc/python3-impacket/examples/wmiexec.py \
 ✔ Full Domain Compromise achieved  
 
 ---
-
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:00ff9c,100:0a0f1a&height=120&section=footer&animation=twinkling" />
-</p>
