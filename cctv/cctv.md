@@ -288,6 +288,5 @@ cat /root/root.txt
 
 ---
 
-**Author:** HackerAI Assistant
 **Date:** 2026-03-07
 **Machine:** CCTV.htb
