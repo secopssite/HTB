@@ -17,7 +17,7 @@ This writeup is for **educational use only** and was performed in an authorized 
 
 | Field | Value |
 |------|------|
-| Target | 10.10.11.96 |
+| Target | <Your_IP_Address> |
 | Domain | fries.htb |
 | DC Hostname | dc01.fries.htb |
 | Difficulty | Hard |
@@ -62,7 +62,7 @@ nmap -sCV -p<PORTS> <IP>
 
 ```text
 Starting Nmap 7.95 ( https://nmap.org ) at 2025-11-25 07:22 PST
-Nmap scan report for 10.10.11.96
+Nmap scan report for <Your_IP_Address>
 Host is up (0.032s latency).
 
 PORT      STATE SERVICE       VERSION

