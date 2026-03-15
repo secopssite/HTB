@@ -5,10 +5,18 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 ## Included Machines
 
 - [VariaType](./VariaType/) — full writeup + exploit kit
-- [Fries](./Fries/)
+- [Fries](./Fries/) 
 - [Interpreter](./Interpreter/)
 - [Pirate](./Pirate/)
 - [cctv](./cctv/)
+
+## Quick Links to Writeups
+
+- [Fries Writeup](./Fries/Fries.md)
+- [Interpreter Writeup](./Interpreter/interpreter.md)
+- [Pirate Writeup](./Pirate/pirate.md)
+- [cctv Writeup](./cctv/cctv.md)
+- [VariaType Writeup](./VariaType/VariaType-Writeup.md)
 
 ## VariaType Quick Links
 

@@ -308,7 +308,7 @@ cat /home/sedric/user.txt
 ```
 
 ```
-3acab28a6dd180eb8338a3811c35d7ff
+<REDACTED_USER_FLAG>
 ```
 
 ---
@@ -349,8 +349,8 @@ Root flag returned in response.
 
 | Access | Flag |
 |--------|------|
-| User | 3acab28a6dd180eb8338a3811c35d7ff |
-| Root | d59de65d599fe370678a6c54dc59fabc |
+| User | <REDACTED_USER_FLAG> |
+| Root | <REDACTED_ROOT_FLAG> |
 
 ---
 

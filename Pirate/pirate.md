@@ -52,7 +52,7 @@ type C:\Users\a.white\Desktop\user.txt
 
 **Flag**
 ```
-8af6758f07189ef50343d98ab6748d33
+<REDACTED_USER_FLAG>
 ```
 
 ---
@@ -71,7 +71,7 @@ type C:\Users\Administrator\Desktop\root.txt
 
 **Flag**
 ```
-b0c531c3049564d7e3a263a704e46b98
+<REDACTED_ROOT_FLAG>
 ```
 
 ---

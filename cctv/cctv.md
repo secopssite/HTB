@@ -259,7 +259,7 @@ cat /home/sa_mark/user.txt
 ```
 
 ```
-f88c6000f89382f980d371e475a47d04
+<REDACTED_USER_FLAG>
 ```
 
 ---
@@ -271,7 +271,7 @@ cat /root/root.txt
 ```
 
 ```
-5c5c83cc41e2c2d5f0abfc3f8acfdd84
+<REDACTED_ROOT_FLAG>
 ```
 
 ---

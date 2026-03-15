@@ -581,13 +581,13 @@ evil-winrm -i <IP> -u 'Administrator' -H a773cb05d79273299a684a23ede56748
 > **root.txt**
 
 ```text
-2ce93f877c167a8e1ca7dfa6baffad2a
+<REDACTED_ROOT_FLAG>
 ```
 
 > **user.txt**
 
 ```text
-7fdd8a52dba09f85547ef0f353103627
+<REDACTED_USER_FLAG>
 ```
 
 ---

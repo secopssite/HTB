@@ -3,8 +3,8 @@
 **Target IP:** 10.129.7.194  
 **Difficulty:** Medium  
 **Flags:**
-- user.txt: `64e62fc344a4beac2eb5dacd5fa25b7a`
-- root.txt: `536809442f8e30972cbb8aa1d7ec5e04`
+- user.txt: `<REDACTED_USER_FLAG>`
+- root.txt: `<REDACTED_ROOT_FLAG>`
 
 ---
 
@@ -227,7 +227,7 @@ sleep 60
 ssh -o StrictHostKeyChecking=no -i steve_key steve@10.129.7.194 "whoami && cat ~/user.txt"
 ```
 
-**user.txt:** `64e62fc344a4beac2eb5dacd5fa25b7a`
+**user.txt:** `<REDACTED_USER_FLAG>`
 
 ---
 
@@ -290,7 +290,7 @@ ssh -o StrictHostKeyChecking=no -i steve_key steve@10.129.7.194 \
 ssh -o StrictHostKeyChecking=no -i root_key root@10.129.7.194 "whoami && cat /root/root.txt"
 ```
 
-**root.txt:** `536809442f8e30972cbb8aa1d7ec5e04`
+**root.txt:** `<REDACTED_ROOT_FLAG>`
 
 ---
 
