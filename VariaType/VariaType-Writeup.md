@@ -485,5 +485,4 @@ echo "[*] Done!"
 5. **URL-encoded absolute paths** (`%2Froot%2F.ssh`) can bypass path validation
 
 ---
-
-*Writeup by HackerAI - For educational purposes only*
+For educational purposes only*
