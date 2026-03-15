@@ -3,6 +3,8 @@
 Public collection of Hack The Box notes, writeups, and helper scripts.
 
 > Search keywords: HackTheBox, HTB, VariaType, Avatar, Fries, Interpreter, Pirate, CCTV, writeup, walkthrough, exploit, privilege escalation, Active Directory, Linux, Windows.
+>
+> Hostname keywords: `variatype.htb`, `portal.variatype.htb`, `fries.htb`, `cctv.htb`, `interpreter.htb`, `pirate.htb`
 
 ## Included Machines
 
