@@ -2,6 +2,8 @@
 
 Public collection of Hack The Box notes, writeups, and helper scripts.
 
+> Search keywords: HackTheBox, HTB, VariaType, Avatar, Fries, Interpreter, Pirate, CCTV, writeup, walkthrough, exploit, privilege escalation, Active Directory, Linux, Windows.
+
 ## Included Machines
 
 - [VariaType](./VariaType/) — full writeup + exploit kit
@@ -9,6 +11,16 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 - [Interpreter](./Interpreter/)
 - [Pirate](./Pirate/)
 - [cctv](./cctv/)
+
+## Machine Index (Search Friendly)
+
+| Machine | Type | Difficulty | Link |
+|---|---|---|---|
+| VariaType (Avatar) | Linux | Medium | [VariaType-Writeup.md](./VariaType/VariaType-Writeup.md) |
+| Fries | Windows + Linux / AD | Hard | [Fries.md](./Fries/Fries.md) |
+| Interpreter | Linux | Medium | [interpreter.md](./Interpreter/interpreter.md) |
+| Pirate | Active Directory | Medium | [pirate.md](./Pirate/pirate.md) |
+| CCTV | Linux | Medium | [cctv.md](./cctv/cctv.md) |
 
 ## Quick Links to Writeups
 
