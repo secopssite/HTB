@@ -6,6 +6,11 @@
 
 ## Challenge Info
 
+**Keywords:** python sandbox escape, chr() bypass, vars().get(), blacklist bypass, code injection, restricted shell, exec, python jail, character code construction, open_chest, dictionary methods, introspection bypass, misc easy 975 points  
+**Tags:** #python #sandbox #blacklist-bypass #chr #vars #exec #jailbreak #misc-easy #hackthebox #ctf  
+**Flag:** `HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_6e18b179e97f616ccb44d71e361278de}`  
+**Search Terms:** how to bypass python blacklist, python sandbox escape chr, python vars get bypass, restricted python shell escape, python exec bypass, open_chest function call, hackthebox locked away walkthrough, hackthebox locked away solution, lockedaway htb, locked-away ctf
+
 - **Name**: Locked Away
 - **Category**: Misc
 - **Difficulty**: Easy
@@ -112,3 +117,4 @@ HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_6e18b179e97f616ccb44d71e361278de}
 
 - [Python chr() Function](https://docs.python.org/3/library/functions.html#chr)
 - [Python vars() Function](https://docs.python.org/3/library/functions.html#vars)
+

