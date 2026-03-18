@@ -1,42 +1,44 @@
-# Hack The Box Write-ups
+# HTB Writeups & Exploit Kits
 
-![HTB](https://img.shields.io/badge/Hack%20The%20Box-9FEF00?style=for-the-badge&logo=hackthebox&logoColor=white)
+Public collection of Hack The Box notes, writeups, and helper scripts.
 
-Collection of CTF write-ups and solutions from Hack The Box labs.
+> Search keywords: HackTheBox, HTB, VariaType, Avatar, Fries, Interpreter, Pirate, CCTV, writeup, walkthrough, exploit, privilege escalation, Active Directory, Linux, Windows.
+>
+> Hostname keywords: `variatype.htb`, `portal.variatype.htb`, `fries.htb`, `cctv.htb`, `interpreter.htb`, `pirate.htb`
 
-## Contents
+## Included Machines
 
-| Challenge | Category | Difficulty | Points | Status |
-|-----------|----------|------------|--------|--------|
-| [Locked Away](./htb-labs/misc/locked-away.md) | Misc | Easy | 975 | ✅ Complete |
-| [Hidden Path](./htb-labs/misc/hidden-path.md) | Misc | Easy | 1000 | ✅ Complete |
+- [VariaType](./VariaType/) — full writeup + exploit kit
+- [Fries](./Fries/) 
+- [Interpreter](./Interpreter/)
+- [Pirate](./Pirate/)
+- [cctv](./cctv/)
 
-## Statistics
+## Machine Index (Search Friendly)
 
-- **Total Challenges**: 2
-- **Total Points**: 1975
-- **Categories Covered**: Misc
+| Machine | Type | Difficulty | Link |
+|---|---|---|---|
+| VariaType (Avatar) | Linux | Medium | [VariaType-Writeup.md](./VariaType/VariaType-Writeup.md) |
+| Fries | Windows + Linux / AD | Hard | [Fries.md](./Fries/Fries.md) |
+| Interpreter | Linux | Medium | [interpreter.md](./Interpreter/interpreter.md) |
+| Pirate | Active Directory | Medium | [pirate.md](./Pirate/pirate.md) |
+| CCTV | Linux | Medium | [cctv.md](./cctv/cctv.md) |
 
-## Flags Captured
+## Quick Links to Writeups
 
-```
-HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_6e18b179e97f616ccb44d71e361278de}  [Locked Away]
-HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_6011a114c82501cf9d38d89d752075cd}  [Hidden Path]
-```
+- [Fries Writeup](./Fries/Fries.md)
+- [Interpreter Writeup](./Interpreter/interpreter.md)
+- [Pirate Writeup](./Pirate/pirate.md)
+- [cctv Writeup](./cctv/cctv.md)
+- [VariaType Writeup](./VariaType/VariaType-Writeup.md)
 
-## About
+## VariaType Quick Links
 
-These write-ups document the complete exploitation process for each challenge, including:
-- Source code analysis
-- Vulnerability identification
-- Step-by-step exploitation
-- Flag capture process
-- Key lessons learned
+- [Writeup](./VariaType/VariaType-Writeup.md)
+- [Automation Script](./VariaType/exploit_variatype.sh)
+- [Phase 1](./VariaType/phase1_git_extract.py)
+- [Phase 2](./VariaType/phase2_rce_exploit.py)
+- [Phase 3](./VariaType/phase3_privesc_steve.py)
+- [Phase 4](./VariaType/phase4_privesc_root.py)
 
-## Disclaimer
-
-These write-ups are for educational purposes only. The vulnerabilities and exploitation techniques documented here should be used responsibly and only on authorized systems.
-
----
-
-**Last Updated**: 2026-03-18
+> Note: Content is for authorized CTF/lab environments only.
