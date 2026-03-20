@@ -1,5 +1,7 @@
 # HTB Writeups & Exploit Kits
 
+SEO terms: HackTheBox writeups, HTB walkthroughs, HackTheBox Hercules writeup, hercules.htb walkthrough, Active Directory HTB solutions.
+
 Public collection of Hack The Box notes, writeups, and helper scripts.
 
 > Search keywords: HackTheBox, HTB, VariaType, Avatar, Fries, Interpreter, Pirate, CCTV, writeup, walkthrough, exploit, privilege escalation, Active Directory, Linux, Windows.

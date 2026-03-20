@@ -1,5 +1,7 @@
 # Hercules (HTB) — Full AD Chain Writeup
 
+> SEO: HackTheBox Hercules writeup, HackTheBox Hercules walkthrough, HTB Hercules solution, hercules.htb Active Directory exploit chain.
+
 > **Target IP used in this run:** `10.129.11.138`  
 > **Domain:** `hercules.htb`  
 > **DC Hostname:** `dc.hercules.htb`
