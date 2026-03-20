@@ -31,6 +31,15 @@ HTB Global Search Optimization Guide:
 **Flag:** `HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_6011a114c82501cf9d38d89d752075cd}`  
 **Search Terms:** unicode injection exploit, U+3164 vulnerability, invisible character attack, nodejs command injection, express destructuring bypass, hackthebox hidden path walkthrough, hackthebox hidden path solution, hangul jungseong filler exploit
 
+## Hercules  
+**Challenge:** Hercules, hercules.htb, dc.hercules.htb  
+**Category:** Active Directory, Windows  
+**Difficulty:** Insane  
+**Keywords:** ldap injection, shadow credentials, certipy, ESC3, enrollment agent, usersignature, dcom cert request, rbcd, iis_webserver$, u2u, s4u2self, s4u2proxy, dcsync, kerberos, bloodyAD, winrm  
+**Tags:** #active-directory #windows #esc3 #shadow-credentials #rbcd #kerberos #dcsync #hackthebox  
+**Techniques:** LDAP filter injection, Shadow Credentials, AD object move/ACL abuse, ESC3 via DCOM, service-account abuse, U2U+S4U, DCSync  
+**Search Terms:** hackthebox hercules walkthrough, hercules htb writeup, certipy esc3 dcom, iis_webserver$ u2u s4u2proxy, shadow credentials hercules, dcsync hercules
+
 ## HTB Labs Categories & Common Terms
 
 ### Web Exploitation

@@ -13,6 +13,7 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 - [Interpreter](./Interpreter/)
 - [Pirate](./Pirate/)
 - [cctv](./cctv/)
+- [Hercules](./Hercules/)
 
 ## Machine Index (Search Friendly)
 
@@ -23,6 +24,7 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 | Interpreter | Linux | Medium | [interpreter.md](./Interpreter/interpreter.md) |
 | Pirate | Active Directory | Medium | [pirate.md](./Pirate/pirate.md) |
 | CCTV | Linux | Medium | [cctv.md](./cctv/cctv.md) |
+| Hercules | Windows / Active Directory | Insane | [hercules.md](./Hercules/hercules.md) |
 
 ## Quick Links to Writeups
 
@@ -31,6 +33,7 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 - [Pirate Writeup](./Pirate/pirate.md)
 - [cctv Writeup](./cctv/cctv.md)
 - [VariaType Writeup](./VariaType/VariaType-Writeup.md)
+- [Hercules Writeup](./Hercules/hercules.md)
 
 ## VariaType Quick Links
 
