@@ -16,6 +16,7 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 - [Pirate](./Pirate/)
 - [cctv](./cctv/)
 - [Hercules](./Hercules/)
+- [Kobold](./Kobold/)
 
 ## Machine Index (Search Friendly)
 
@@ -27,6 +28,7 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 | Pirate | Active Directory | Medium | [pirate.md](./Pirate/pirate.md) |
 | CCTV | Linux | Medium | [cctv.md](./cctv/cctv.md) |
 | Hercules | Windows / Active Directory | Insane | [hercules.md](./Hercules/hercules.md) |
+| Kobold | Linux | Easy | [kobold.md](./Kobold/kobold.md) |
 
 ## Quick Links to Writeups
 
@@ -36,6 +38,7 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 - [cctv Writeup](./cctv/cctv.md)
 - [VariaType Writeup](./VariaType/VariaType-Writeup.md)
 - [Hercules Writeup](./Hercules/hercules.md)
+- [Kobold Writeup](./Kobold/kobold.md)
 
 ## VariaType Quick Links
 
