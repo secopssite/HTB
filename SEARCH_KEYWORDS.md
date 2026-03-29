@@ -40,6 +40,15 @@ HTB Global Search Optimization Guide:
 **Techniques:** LDAP filter injection, Shadow Credentials, AD object move/ACL abuse, ESC3 via DCOM, service-account abuse, U2U+S4U, DCSync  
 **Search Terms:** hackthebox hercules walkthrough, hercules htb writeup, certipy esc3 dcom, iis_webserver$ u2u s4u2proxy, shadow credentials hercules, dcsync hercules
 
+## DevArea  
+**Challenge:** DevArea, devarea.htb, devarea  
+**Category:** Linux, Web, API  
+**Difficulty:** Medium  
+**Keywords:** apache cxf, xop include, mtom, soap file read, local file inclusion, hoverfly, hoverfly middleware, jwt auth, reverse shell, syswatch, writable bash, privilege escalation, jetty, linux privesc  
+**Tags:** #linux #web #soap #mtom #xop #hoverfly #jwt #reverse-shell #sudo #privilege-escalation #hackthebox  
+**Techniques:** XOP/MTOM arbitrary file read, service credential extraction, API authentication abuse, middleware command execution, writable binary hijack, sudo-assisted privesc  
+**Search Terms:** hackthebox devarea walkthrough, devarea htb writeup, devarea hoverfly exploit, apache cxf xop mtom file read, hoverfly middleware rce, syswatch bash hijack, writable /usr/bin/bash privilege escalation
+
 ## HTB Labs Categories & Common Terms
 
 ### Web Exploitation

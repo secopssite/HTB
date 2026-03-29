@@ -1,12 +1,12 @@
 # HTB Writeups & Exploit Kits
 
-SEO terms: HackTheBox writeups, HTB walkthroughs, HackTheBox Hercules writeup, hercules.htb walkthrough, Active Directory HTB solutions.
+SEO terms: HackTheBox writeups, HTB walkthroughs, HackTheBox Hercules writeup, hercules.htb walkthrough, DevArea HTB writeup, devarea.htb walkthrough, Hoverfly middleware RCE, Active Directory HTB solutions.
 
 Public collection of Hack The Box notes, writeups, and helper scripts.
 
-> Search keywords: HackTheBox, HTB, VariaType, Avatar, Fries, Interpreter, Pirate, CCTV, writeup, walkthrough, exploit, privilege escalation, Active Directory, Linux, Windows.
+> Search keywords: HackTheBox, HTB, VariaType, Avatar, Fries, Interpreter, Pirate, CCTV, DevArea, writeup, walkthrough, exploit, privilege escalation, Hoverfly, XOP, MTOM, SOAP, Active Directory, Linux, Windows.
 >
-> Hostname keywords: `variatype.htb`, `portal.variatype.htb`, `fries.htb`, `cctv.htb`, `interpreter.htb`, `pirate.htb`
+> Hostname keywords: `variatype.htb`, `portal.variatype.htb`, `fries.htb`, `cctv.htb`, `interpreter.htb`, `pirate.htb`, `devarea.htb`
 
 ## Included Machines
 
@@ -17,6 +17,7 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 - [cctv](./cctv/)
 - [Hercules](./Hercules/)
 - [Kobold](./Kobold/)
+- [DevArea](./DevArea/)
 
 ## Machine Index (Search Friendly)
 
@@ -29,6 +30,7 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 | CCTV | Linux | Medium | [cctv.md](./cctv/cctv.md) |
 | Hercules | Windows / Active Directory | Insane | [hercules.md](./Hercules/hercules.md) |
 | Kobold | Linux | Easy | [kobold.md](./Kobold/kobold.md) |
+| DevArea | Linux | Medium | [devarea.md](./DevArea/devarea.md) |
 
 ## Quick Links to Writeups
 
@@ -39,6 +41,7 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 - [VariaType Writeup](./VariaType/VariaType-Writeup.md)
 - [Hercules Writeup](./Hercules/hercules.md)
 - [Kobold Writeup](./Kobold/kobold.md)
+- [DevArea Writeup](./DevArea/devarea.md)
 
 ## VariaType Quick Links
 
