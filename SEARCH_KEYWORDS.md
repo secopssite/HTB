@@ -9,28 +9,6 @@ HTB Global Search Optimization Guide:
 - Use HTB{...} format for flags
 -->
 
-## Locked Away
-**Challenge:** Locked Away, locked-away, lockedaway, locked_away  
-**Category:** Misc, Python, Sandbox  
-**Points:** 975  
-**Difficulty:** Easy  
-**Keywords:** python sandbox escape, chr() bypass, vars().get(), blacklist bypass, code injection, restricted shell, exec, python jail, character code construction, open_chest, dictionary methods, introspection bypass  
-**Tags:** #python #sandbox #blacklist-bypass #chr #vars #exec #jailbreak #misc-easy #hackthebox  
-**Techniques:** chr() string construction, vars().get() method, blacklist bypass, python sandbox escape  
-**Flag:** `HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_6e18b179e97f616ccb44d71e361278de}`  
-**Search Terms:** how to bypass python blacklist, python sandbox escape chr, python vars get bypass, restricted python shell escape, python exec bypass, open_chest function call, hackthebox locked away walkthrough, hackthebox locked away solution
-
-## Hidden Path  
-**Challenge:** Hidden Path, hidden-path, hiddenpath, hidden_path  
-**Category:** Misc, JavaScript, Node.js, Web  
-**Points:** 1000  
-**Difficulty:** Easy  
-**Keywords:** unicode homoglyph, command injection, U+3164, invisible character, nodejs, express, destructuring, variable reference, hangul jungseong filler, array injection, system check endpoint  
-**Tags:** #javascript #nodejs #command-injection #unicode #homoglyph #u3164 #express #invisible-character #misc-easy #hackthebox  
-**Techniques:** Unicode homoglyph injection (U+3164), variable reference injection, express body parser abuse, array element pollution  
-**Flag:** `HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_6011a114c82501cf9d38d89d752075cd}`  
-**Search Terms:** unicode injection exploit, U+3164 vulnerability, invisible character attack, nodejs command injection, express destructuring bypass, hackthebox hidden path walkthrough, hackthebox hidden path solution, hangul jungseong filler exploit
-
 ## Garfield
 **Challenge:** Garfield, garfield.htb, DC01.garfield.htb, RODC01.garfield.htb  
 **Category:** Windows, Active Directory, RODC, Kerberos  
