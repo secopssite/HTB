@@ -18,6 +18,9 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 - [Hercules](./Hercules/)
 - [Kobold](./Kobold/)
 - [DevArea](./DevArea/)
+- [Garfield](./Garfield/) — RODC / Golden Ticket / KeyList attack
+
+> SEO Keywords: hackthebox garfield, garfield.htb writeup, rodc golden ticket, keylist attack, active directory rodc abuse, hackthebox windows rodc, rbcd rodc, krbtgt_8245 exploit
 
 ## Machine Index (Search Friendly)
 
@@ -31,6 +34,9 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 | Hercules | Windows / Active Directory | Insane | [hercules.md](./Hercules/hercules.md) |
 | Kobold | Linux | Easy | [kobold.md](./Kobold/kobold.md) |
 | DevArea | Linux | Medium | [devarea.md](./DevArea/devarea.md) |
+| Garfield | Windows / RODC / AD | Hard | [garfield.md](./Garfield/garfield.md) |
+
+> Garfield keywords: rodc golden ticket, keylist kerberos attack, rbcd resource based constrained delegation, krbtgt_8245, active directory rodc abuse, evil-winrm, impacket ticket converter, nxc ntds dump, dcsync rodc, hackthebox garfield walkthrough
 
 ## Quick Links to Writeups
 
@@ -42,6 +48,7 @@ Public collection of Hack The Box notes, writeups, and helper scripts.
 - [Hercules Writeup](./Hercules/hercules.md)
 - [Kobold Writeup](./Kobold/kobold.md)
 - [DevArea Writeup](./DevArea/devarea.md)
+- [Garfield Writeup](./Garfield/garfield.md)
 
 ## VariaType Quick Links
 

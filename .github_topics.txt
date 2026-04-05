@@ -1,0 +1,80 @@
+# GitHub Repository Topics for SEO
+
+Add these topics on GitHub repo page (Settings > Manage topics):
+
+hackthebox
+htb
+penetration-testing
+writeup
+walkthrough
+ctf
+active-directory
+windows-exploitation
+linux-exploitation
+rodc
+kerberos
+rbcd
+golden-ticket
+keylist
+sql-injection
+xss
+privilege-escalation
+reverse-shell
+exploit
+bugbounty
+cybersecurity
+infosec
+certipy
+bloodhound
+evil-winrm
+impacket
+nmap
+nuclei
+ffuf
+gobuster
+ldap
+powershell
+python-exploitation
+shell-script
+variatype
+fries
+interpreter
+pirate
+cctv
+hercules
+kobold
+devarea
+garfield
+
+---
+
+# GitHub Description (SEO Optimized)
+
+Suggested repo description:
+"HackTheBox writeups and exploit kits: VariaType, Fries, Interpreter, Pirate, CCTV, Hercules, Kobold, DevArea, Garfield. Windows/Linux AD exploitation, RODC attacks, Kerberos abuse, web vulnerabilities."
+
+# GitHub Website Field
+
+Can add: https://secopssite.github.io or leave blank
+
+# GitHub About Section
+
+Enable:
+- Releases (if you publish exploits as releases)
+- Packages (if applicable)
+- Wiki (if you want separate docs)
+- Discussions (for community)
+- Projects (for tracking)
+- Actions (for CI/CD)
+
+# SEO Checklist for GitHub Global Search
+
+✓ Full machine names and variations in README
+✓ Complete flags in searchable format (without HTB{} prefix for challenges)
+✓ CVE numbers mentioned where applicable
+✓ Tool names in every writeup
+✓ Technique names (ACL abuse, RBCD, Golden Ticket, etc.)
+✓ Code snippets that search engines can index
+✓ Hostname keywords in backticks (garfield.htb, dc01.garfield.htb)
+✓ File names match search keywords (garfield.md, not just writeup.md)
+✓ Topics cover all major categories

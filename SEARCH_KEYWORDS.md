@@ -31,6 +31,18 @@ HTB Global Search Optimization Guide:
 **Flag:** `HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_6011a114c82501cf9d38d89d752075cd}`  
 **Search Terms:** unicode injection exploit, U+3164 vulnerability, invisible character attack, nodejs command injection, express destructuring bypass, hackthebox hidden path walkthrough, hackthebox hidden path solution, hangul jungseong filler exploit
 
+## Garfield
+**Challenge:** Garfield, garfield.htb, DC01.garfield.htb, RODC01.garfield.htb  
+**Category:** Windows, Active Directory, RODC, Kerberos  
+**Difficulty:** Hard  
+**Keywords:** rodc golden ticket, keylist attack, resource based constrained delegation, rbcd, krbtgt_8245, read-only domain controller, evil-winrm, bloodhound acl abuse, logon script abuse, scriptpath manipulation, powercat reverse shell, tunneling to rodc, impacket ticket converter, nxc ntds dump, dcsync rodc, administrator hash capture  
+**Tags:** #rodc #golden-ticket #keylist #rbcd #kerberos #windows #active-directory #hard #hackthebox #bloodhound #acl-abuse  
+**Techniques:** ACL abuse via BloodHound, Logon script path manipulation (scriptPath), RBCD configuration on RODC, RODC Golden Ticket forgery, KeyList attack to retrieve legitimate Administrator ticket, LAPS abuse, NTDS.dit extraction  
+**Flags:**
+- User: `507962c068a3688b1c5878b0a7e3badc`
+- Root: `9490fac0230b0e288cdf451038321104`
+**Search Terms:** hackthebox garfield walkthrough, garfield htb writeup, garfield.htb rodc, rodc golden ticket attack, keylist kerberos attack, rbcd resource based constrained delegation, krbtgt_8245 key extraction, active directory rodc abuse, evil-winrm l.wilson_adm, impacket ticket converter, nxc ntds dump dcsync, hackthebox windows rodc hard, bloodhound acl scriptpath abuse, garfield.htb administrator ticket
+
 ## Hercules  
 **Challenge:** Hercules, hercules.htb, dc.hercules.htb  
 **Category:** Active Directory, Windows  
