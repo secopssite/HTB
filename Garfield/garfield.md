@@ -5,8 +5,7 @@
 > **Difficulty:** Hard  
 > **Category:** Windows / Active Directory / RODC / Kerberos Abuse  
 > **Status:** Rooted  
-> **Author:** Chad Hamad  
-> **Date:** 2026-04-05
+>> **Date:** 2026-04-05
 
 <p align="center">
   <img src="https://img.shields.io/badge/HTB-Garfield-red?style=for-the-badge" />
