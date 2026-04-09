@@ -22,8 +22,8 @@ This machine hinged on **abusing Active Directory ACLs** to gain code execution 
 
 ### Captured Flags
 
-- **User flag:** `507962c068a3688b1c5878b0a7e3badc`
-- **Root flag:** `9490fac0230b0e288cdf451038321104`
+- **User flag:** `507962c068a3688.................`
+- **Root flag:** `9490fac0230b0e2.................`
 
 ---
 
@@ -293,7 +293,7 @@ type user.txt
 ### Output
 
 ```text
-507962c068a3688b1c5878b0a7e3badc
+507962c068a3688.................
 ```
 
 ✅ **User flag captured**
@@ -726,7 +726,7 @@ FAKE$:...
 ✅ Administrator NT hash obtained:
 
 ```text
-ee238f6debc752010428f20875b092d5
+ee238f6debc752010...................
 ```
 
 ---
@@ -759,8 +759,8 @@ garfield\administrator
 
 | Flag | Value |
 |---|---|
-| User | `507962c068a3688b1c5878b0a7e3badc` |
-| Root | `9490fac0230b0e288cdf451038321104` |
+| User | `507962c068a3688.................` |
+| Root | `9490fac0230b0e2.................` |
 
 ---
 
