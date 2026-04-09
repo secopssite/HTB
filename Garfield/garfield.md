@@ -748,7 +748,7 @@ type C:\Users\Administrator\Desktop\root.txt
 
 ```text
 garfield\administrator
-9490fac0230b0e288cdf451038321104
+9490fac0230b0e2.................
 ```
 
 ✅ **Root flag captured**
