@@ -27,13 +27,14 @@ Public collection of Hack The Box machine writeups, challenge solutions, and hel
 
 ---
 
-## Challenges (5 Total)
+## Challenges (6 Total)
 
 | Challenge | Category | Difficulty | Vulnerability | Writeup |
 |-----------|----------|------------|---------------|---------|
 | **AgriWeb** | Web | Easy | Prototype Pollution | [agriweb.md](./Challenges/AgriWeb/agriweb.md) |
 | **CommNet** | Web | Easy | IDOR | [commnet.md](./Challenges/CommNet/commnet.md) |
 | **HydroAdmin** | Web | Easy | GraphQL Batching | [hydroadmin.md](./Challenges/HydroAdmin/hydroadmin.md) |
+| **Noisy Vault** | Quantum | Easy | Quantum Noise / Majority Voting | [noisy-vault.md](./Challenges/NoisyVault/noisy-vault.md) |
 | **Powergrid** | Web | Easy | CRLF / Delimiter Injection | [powergrid.md](./Challenges/Powergrid/powergrid.md) |
 | **ResourceHub Core** | Web | Easy | Path Traversal | [resourcehub.md](./Challenges/ResourceHub/resourcehub.md) |
 
