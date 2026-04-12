@@ -27,7 +27,7 @@ Public collection of Hack The Box machine writeups, challenge solutions, and hel
 
 ---
 
-## Challenges (6 Total)
+## Challenges (8 Total)
 
 | Challenge | Category | Difficulty | Vulnerability | Writeup |
 |-----------|----------|------------|---------------|---------|
@@ -37,6 +37,8 @@ Public collection of Hack The Box machine writeups, challenge solutions, and hel
 | **Noisy Vault** | Quantum | Easy | Quantum Noise / Majority Voting | [noisy-vault.md](./Challenges/NoisyVault/noisy-vault.md) |
 | **Powergrid** | Web | Easy | CRLF / Delimiter Injection | [powergrid.md](./Challenges/Powergrid/powergrid.md) |
 | **ResourceHub Core** | Web | Easy | Path Traversal | [resourcehub.md](./Challenges/ResourceHub/resourcehub.md) |
+| **Noisy Vault** | Quantum | Easy | Quantum Noise / Majority Voting | [noisy-vault.md](./Challenges/NoisyVault/noisy-vault.md) |
+| **Uplink** | Coding | Insane | Li Chao Tree / Convex Hull Trick | [uplink.md](./Challenges/Uplink/uplink.md) |
 
 ---
 
