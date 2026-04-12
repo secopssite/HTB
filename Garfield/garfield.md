@@ -10,7 +10,6 @@
 
 **MrsNobody**
 
-[![HTB](https://img.shields.io/badge/HackTheBox-Profile-green?style=flat&logo=hackthebox)](https://app.hackthebox.com)
 
 ---
 
