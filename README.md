@@ -27,12 +27,13 @@ Public collection of Hack The Box machine writeups, challenge solutions, and hel
 
 ---
 
-## Challenges (3 Total)
+## Challenges (4 Total)
 
 | Challenge | Category | Difficulty | Vulnerability | Writeup |
 |-----------|----------|------------|---------------|---------|
-| **CommNet** | Web | Easy | IDOR | [commnet.md](./Challenges/CommNet/commnet.md) |
 | **AgriWeb** | Web | Easy | Prototype Pollution | [agriweb.md](./Challenges/AgriWeb/agriweb.md) |
+| **CommNet** | Web | Easy | IDOR | [commnet.md](./Challenges/CommNet/commnet.md) |
+| **HydroAdmin** | Web | Easy | GraphQL Batching | [hydroadmin.md](./Challenges/HydroAdmin/hydroadmin.md) |
 | **ResourceHub Core** | Web | Easy | Path Traversal | [resourcehub.md](./Challenges/ResourceHub/resourcehub.md) |
 
 ---
