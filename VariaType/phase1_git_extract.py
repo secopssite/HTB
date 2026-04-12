@@ -25,7 +25,7 @@ def main():
     print("Phase 1: Git Repository Extraction")
     print("="*60)
     
-    RHOST = "<Tareget_IP>"
+    RHOST = "<Target_IP>"
     
     # Setup hosts
     print("\n[*] Adding hosts entry...")

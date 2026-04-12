@@ -11,7 +11,7 @@
 
 | Field | Value |
 |--------|--------|
-| IP Address | <Tareget_IP> |
+| IP Address | <Target_IP> |
 | Hostname | interpreter.htb |
 | OS | Linux |
 | Author | Salwa-Ai |
@@ -43,7 +43,7 @@ This writeup is for **educational purposes only** and reflects exploitation perf
 ## Nmap Scan
 
 ```bash
-nmap -sC -sV -Pn <Tareget_IP>
+nmap -sC -sV -Pn <Target_IP>
 ```
 
 ### Open Ports Identified
@@ -59,7 +59,7 @@ nmap -sC -sV -Pn <Tareget_IP>
 ## Host Mapping
 
 ```bash
-echo "<Tareget_IP> interpreter.htb" | sudo tee -a /etc/hosts
+echo "<Target_IP> interpreter.htb" | sudo tee -a /etc/hosts
 ```
 
 Browsing the web application reveals **Mirth Connect**.

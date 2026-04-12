@@ -1,80 +1,46 @@
-# GitHub Repository Topics for SEO
+# GitHub Repository Topics (max 20)
+# Set via: gh repo edit --add-topic <topic>
 
-Add these topics on GitHub repo page (Settings > Manage topics):
-
+# Core identity
 hackthebox
 htb
-penetration-testing
+ctf
 writeup
 walkthrough
-ctf
-active-directory
-windows-exploitation
-linux-exploitation
-rodc
-kerberos
-rbcd
-golden-ticket
-keylist
-sql-injection
-xss
-privilege-escalation
-reverse-shell
 exploit
-bugbounty
+
+# Platforms
+linux
+windows
+active-directory
+
+# Techniques
+privesc
+pentest
 cybersecurity
 infosec
-certipy
-bloodhound
-evil-winrm
-impacket
-nmap
-nuclei
-ffuf
-gobuster
-ldap
-powershell
-python-exploitation
-shell-script
-variatype
-fries
-interpreter
-pirate
-cctv
-hercules
-kobold
-devarea
-garfield
+
+# Machine names (most notable)
+silentium
+flowise
+gogs
+ai-security
 
 ---
 
 # GitHub Description (SEO Optimized)
 
 Suggested repo description:
-"HackTheBox writeups and exploit kits: VariaType, Fries, Interpreter, Pirate, CCTV, Hercules, Kobold, DevArea, Garfield. Windows/Linux AD exploitation, RODC attacks, Kerberos abuse, web vulnerabilities."
-
-# GitHub Website Field
-
-Can add: https://secopssite.github.io or leave blank
-
-# GitHub About Section
-
-Enable:
-- Releases (if you publish exploits as releases)
-- Packages (if applicable)
-- Wiki (if you want separate docs)
-- Discussions (for community)
-- Projects (for tracking)
-- Actions (for CI/CD)
+"HackTheBox (HTB) writeups and exploit kits: Silentium, VariaType, Fries, Garfield, Hercules, Kobold, Pirate, CCTV, DevArea, HiddenPath, LockedAway, Interpreter - CVE-2025-59528, CVE-2025-8110, CVE-2025-2945, CVE-2026-23520, CVE-2025-66034, CVE-2024-25082"
 
 # SEO Checklist for GitHub Global Search
 
-✓ Full machine names and variations in README
-✓ Complete flags in searchable format (without HTB{} prefix for challenges)
-✓ CVE numbers mentioned where applicable
-✓ Tool names in every writeup
-✓ Technique names (ACL abuse, RBCD, Golden Ticket, etc.)
-✓ Code snippets that search engines can index
-✓ Hostname keywords in backticks (garfield.htb, dc01.garfield.htb)
-✓ File names match search keywords (garfield.md, not just writeup.md)
-✓ Topics cover all major categories
+- Full machine names and variations in README
+- Complete flags in SEARCH_KEYWORDS.md for indexing
+- CVE numbers mentioned where applicable
+- Tool names in every writeup
+- Technique names (RBCD, ADCS ESC, gMSA, symlink RCE, etc.)
+- Code snippets that search engines can index
+- Hostname keywords in backticks
+- File names match search keywords
+- Topics cover all major categories (20 max)

