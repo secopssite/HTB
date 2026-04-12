@@ -30,6 +30,18 @@ HTB Global Search Optimization Guide:
 **Techniques:** LDAP filter injection, Shadow Credentials, AD object move/ACL abuse, ESC3 via DCOM, service-account abuse, U2U+S4U, DCSync  
 **Search Terms:** hackthebox hercules walkthrough, hercules htb writeup, certipy esc3 dcom, iis_webserver$ u2u s4u2proxy, shadow credentials hercules, dcsync hercules
 
+## Silentium
+**Challenge:** Silentium, silentium.htb, staging.silentium.htb, staging-v2-code.dev.silentium.htb  
+**Category:** Linux, AI Platform, Docker, Git  
+**Difficulty:** Easy  
+**Keywords:** flowise, flowise ai, flowise rce, flowise exploit, flowise 3.0.5, CVE-2025-59528, flowise custommcp, flowise function constructor, flowise password reset, flowise token disclosure, x-request-from internal, gogs, gogs rce, gogs exploit, gogs symlink, CVE-2025-8110, gogs git config injection, gogs sshcommand, docker credential harvesting, environment variable leak, password reuse, ssh lateral movement, nginx vhost, subdomain discovery  
+**Tags:** #linux #easy #flowise #gogs #docker #ai-platform #rce #cve-2025-59528 #cve-2025-8110 #hackthebox #credential-harvesting #symlink-attack #password-reuse  
+**Techniques:** Virtual host discovery, Flowise API password reset token disclosure via x-request-from internal header, Flowise CustomMCP JavaScript injection via Function() constructor (CVE-2025-59528), Docker container environment variable credential harvesting, SSH password reuse lateral movement, Gogs symlink-based .git/config overwrite RCE via API (CVE-2025-8110), Gogs captcha bypass via API registration  
+**Flags:**
+- User: `af682b00e02e1e4c9dd0aaa9f271e7af`
+- Root: `7b7fab8c83b9bdb403cd60f3118533c8`
+**Search Terms:** hackthebox silentium walkthrough, silentium htb writeup, silentium htb walkthrough, silentium hackthebox easy, flowise rce exploit, flowise custommcp exploit, CVE-2025-59528 exploit, CVE-2025-59528 poc, flowise 3.0.5 vulnerability, flowise password reset token disclosure, flowise x-request-from internal bypass, gogs symlink rce, gogs git config injection exploit, CVE-2025-8110 exploit, CVE-2025-8110 poc, gogs sshcommand rce, docker env credential harvesting, silentium.htb flowise, staging.silentium.htb, htb easy linux ai platform, flowise ai hackthebox, gogs privilege escalation root
+
 ## DevArea  
 **Challenge:** DevArea, devarea.htb, devarea  
 **Category:** Linux, Web, API  

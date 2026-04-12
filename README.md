@@ -8,7 +8,7 @@ Public collection of Hack The Box machine writeups, challenge solutions, and hel
 
 ---
 
-## Included Machines (11 Total)
+## Included Machines (12 Total)
 
 | Machine | Type | Difficulty | OS | Writeup |
 |---------|------|------------|-----|---------|
@@ -22,6 +22,7 @@ Public collection of Hack The Box machine writeups, challenge solutions, and hel
 | **Kobold** | Linux | Easy | Linux | [kobold.md](./Kobold/kobold.md) |
 | **LockedAway** | Python / Misc | Easy | N/A | [locked-away.md](./LockedAway/locked-away.md) |
 | **Pirate** | Active Directory | Medium | Windows | [pirate.md](./Pirate/pirate.md) |
+| **Silentium** | Linux / AI Platform | Easy | Linux | [silentium.md](./Silentium/silentium.md) |
 | **VariaType (Avatar)** | Linux | Medium | Linux | [VariaType-Writeup.md](./VariaType/VariaType-Writeup.md) |
 
 ---
@@ -33,6 +34,7 @@ Public collection of Hack The Box machine writeups, challenge solutions, and hel
 - [DevArea Writeup](./DevArea/devarea.md)
 - [Interpreter Writeup](./Interpreter/interpreter.md)
 - [Kobold Writeup](./Kobold/kobold.md)
+- [Silentium Writeup](./Silentium/silentium.md)
 - [VariaType Writeup](./VariaType/VariaType-Writeup.md)
 
 ### Windows / Active Directory
@@ -54,9 +56,10 @@ Public collection of Hack The Box machine writeups, challenge solutions, and hel
 - **DevArea** — Apache CXF, XOP/MTOM file read, Hoverfly middleware RCE
 - **Interpreter** — Linux privilege escalation, script abuse
 - **Kobold** — Linux kernel exploitation, container escape
+- **Silentium** — Flowise AI platform exploitation, CVE-2025-59528, Docker credential harvesting, Gogs symlink RCE, CVE-2025-8110
 - **VariaType (Avatar)** — Git extraction, PHP deserialization, RCE, privilege escalation
 
-> **Keywords:** linux privesc, sudo abuse, SUID binaries, kernel exploits, container escape, git extraction, php deserialization, RCE, reverse shell, cron abuse, writable files, path hijacking, LD_PRELOAD, capabilities, SUID, GTFOBins
+> **Keywords:** linux privesc, sudo abuse, SUID binaries, kernel exploits, container escape, git extraction, php deserialization, RCE, reverse shell, cron abuse, writable files, path hijacking, LD_PRELOAD, capabilities, SUID, GTFOBins, flowise rce, gogs symlink rce, docker credential harvesting, AI platform exploitation, CVE-2025-59528, CVE-2025-8110
 
 ### Windows / Active Directory
 - **Fries** — Cross-platform AD exploitation, credential abuse, lateral movement
@@ -140,7 +143,7 @@ Linux privesc, SUID, SGID, Capabilities, sudoers, Windows privesc, SeImpersonate
 
 ## Hostname Keywords
 
-`variatype.htb`, `portal.variatype.htb`, `fries.htb`, `cctv.htb`, `interpreter.htb`, `pirate.htb`, `devarea.htb`, `garfield.htb`, `dc01.garfield.htb`, `rodc01.garfield.htb`, `hercules.htb`, `dc.hercules.htb`
+`variatype.htb`, `portal.variatype.htb`, `fries.htb`, `cctv.htb`, `interpreter.htb`, `pirate.htb`, `devarea.htb`, `garfield.htb`, `dc01.garfield.htb`, `rodc01.garfield.htb`, `hercules.htb`, `dc.hercules.htb`, `silentium.htb`, `staging.silentium.htb`, `staging-v2-code.dev.silentium.htb`
 
 ---
 
@@ -152,8 +155,8 @@ Content is for authorized CTF/lab environments and security training purposes on
 
 ## Repository Stats
 
-- **Machines:** 11
-- **Linux:** 5
+- **Machines:** 12
+- **Linux:** 6
 - **Windows/AD:** 4
 - **Web/Misc:** 2
 - **Scripts:** 5
